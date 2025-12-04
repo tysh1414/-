@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🏸 咪咪說了算!!</title>
+    
+    <title>🏸 咪咪說的算!!</title>
+
     <style>
         body { font-family: "Microsoft JhengHei", sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; }
         .container { max-width: 640px; margin: 0 auto; background: white; padding: 25px; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
@@ -46,6 +48,7 @@
 
         /* Modal 通用 */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 999; justify-content: center; align-items: center; }
+        .modal-box { background: white; width: 90%; max-width: 500px; padding: 20px; border-radius: 12px; text-align: center; }
         
         /* 歷史紀錄視窗 */
         .history-box { background: white; width: 95%; max-width: 550px; max-height: 80vh; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; }
@@ -105,7 +108,7 @@
 <body>
 
 <div class="container" id="app-screen">
-    <h1>🏸 打羽球囉!!</h1>
+    <h1>🏸 咪咪說的算!!</h1>
 
     <div class="section" id="setup-section">
         <label>輸入玩家名單 (請用 空白 或 換行 隔開):</label>
@@ -154,7 +157,7 @@
         </div>
     </div>
 
-    <div class="section">
+    <div class="section" id="result-section" style="display:none;">
         <label>📅 本輪對戰表 (<span id="round-display">準備中</span>)</label>
         <div id="result-container">
             <p style="text-align:center; color:#bdc3c7; padding: 20px;">尚未開始</p>
@@ -282,9 +285,14 @@
         historyDoubles.clear(); historySingles.clear(); roundCount = 0;
         document.getElementById('setup-section').style.display = 'none';
         document.getElementById('control-section').style.display = 'block';
+        
+        // 顯示結果區塊
+        document.getElementById('result-section').style.display = 'block';
+        
         updateStatsTable(); renderHistory();
         document.getElementById('result-container').innerHTML = '<p style="text-align:center; color:#bdc3c7;">準備就緒</p>';
     }
+    
     function resetHistoryOnly() { if(confirm("清除搭檔紀錄？")) { historyDoubles.clear(); historySingles.clear(); alert("已重置"); } }
     
     // 全局重置，但保留名字
@@ -303,6 +311,10 @@
         // 恢復畫面
         document.getElementById('control-section').style.display = 'none';
         document.getElementById('setup-section').style.display = 'block';
+        
+        // 隱藏結果區塊
+        document.getElementById('result-section').style.display = 'none';
+        
         document.getElementById('result-container').innerHTML = '<p style="text-align:center; color:#bdc3c7;">尚未開始</p>';
         document.getElementById('stats-body').innerHTML = '';
         document.getElementById('history-list').innerHTML = '<div style="text-align:center; color:#ccc;">暫無紀錄</div>';
@@ -458,7 +470,4 @@
     }
 </script>
 </body>
-
 </html>
-
-
