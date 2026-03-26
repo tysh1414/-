@@ -73,7 +73,9 @@
         .red-text { color: #ff6b6b; }
         .blue-text { color: #4ecdc4; }
         .vs-text { font-size: 1.2em; color: #7f8c8d; font-style: italic; opacity: 0.7; }
-        .court-container { flex: 1; display: flex; justify-content: center; align-items: center; padding: 10px; position: relative; overflow: hidden; }
+        
+        /* 修正：移除 overflow: hidden 避免按鈕被切掉 */
+        .court-container { flex: 1; display: flex; justify-content: center; align-items: center; padding: 10px; position: relative; }
         
         .badminton-court { width: 95vw; max-width: 650px; aspect-ratio: 1.8 / 1; background-color: #27ae60; border: 4px solid white; position: relative; display: flex; flex-direction: row; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: 0.3s; }
         .court-net { width: 4px; height: 100%; background: rgba(255,255,255,0.8); position: absolute; left: 50%; top: 0; bottom: 0; z-index: 10; border-left: 2px dashed #ddd; }
@@ -90,10 +92,13 @@
         .btn-blue { background: #4ecdc4; color: white; box-shadow: 0 4px #16a085; }
         .btn-point:active { transform: translateY(3px); box-shadow: none; }
         .mini-btn { width: 40px; height: 40px; border-radius: 8px; border:none; background: #7f8c8d; color:white; font-weight:bold; cursor: pointer;}
-        .swap-btn-container { position: absolute; height: 100%; width: 40px; display: flex; flex-direction: column; justify-content: center; transition: 0.3s; }
-        .swap-left { left: -45px; }
-        .swap-right { right: -45px; }
-        .btn-swap { background: #95a5a6; color: white; border-radius: 50%; width: 40px; height: 40px; border: none; font-size: 1.2em; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+        
+        /* 修正：將按鈕層級調高，並讓它浮在球場內部邊緣 */
+        .swap-btn-container { position: absolute; height: 100%; width: 40px; display: flex; flex-direction: column; justify-content: center; transition: 0.3s; z-index: 20; }
+        .swap-left { left: 10px; } /* 在左邊緣往內 10px */
+        .swap-right { right: 10px; } /* 在右邊緣往內 10px */
+        .btn-swap { background: #95a5a6; color: white; border-radius: 50%; width: 40px; height: 40px; border: none; font-size: 1.2em; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        
         .game-status { text-align: center; color: #f1c40f; font-weight: bold; font-size: 1.1em; margin-bottom: 5px; min-height: 1.5em; }
         .setting-score { color: white; text-align: center; font-size: 0.9em; margin-bottom: 5px; }
         .setting-score input { width: 40px; text-align: center; border: none; border-radius: 4px; }
@@ -105,15 +110,15 @@
         .btn-overlay { padding: 15px 30px; font-size: 1.2em; margin: 10px; border-radius: 30px; border: none; font-weight: bold; cursor: pointer; }
         @keyframes popIn { 0% { transform: scale(0.5); opacity:0; } 100% { transform: scale(1); opacity:1; } }
 
-        /* 🆕 換邊模式專屬 CSS (利用視覺反轉達成換邊，不影響資料邏輯) */
+        /* 換邊模式專屬 CSS */
         .court-swapped .sb-score-bar { flex-direction: row-reverse; }
         .court-swapped .badminton-court { flex-direction: row-reverse; }
         .court-swapped .score-btns { flex-direction: row-reverse; }
-        .court-swapped .court-half { flex-direction: column-reverse; } /* 確保左右換邊後，球員的左右手視角依然正確 */
+        .court-swapped .court-half { flex-direction: column-reverse; } 
         .court-swapped .court-half.red-side { border-right: none; border-left: 2px solid rgba(255,255,255,0.3); }
         .court-swapped .court-half.blue-side { border-left: none; border-right: 2px solid rgba(255,255,255,0.3); }
-        .court-swapped #swap-container-a { left: auto; right: -45px; }
-        .court-swapped #swap-container-b { right: auto; left: -45px; }
+        .court-swapped #swap-container-a { left: auto; right: 10px; }
+        .court-swapped #swap-container-b { right: auto; left: 10px; }
     </style>
 </head>
 <body>
@@ -230,11 +235,13 @@
     </div>
 
     <div class="court-container">
-        <div class="swap-btn-container swap-left" id="swap-container-a">
-            <button class="btn-swap" onclick="swapPlayers('A')">🔄</button>
-        </div>
-
+        
         <div class="badminton-court">
+            
+            <div class="swap-btn-container swap-left" id="swap-container-a">
+                <button class="btn-swap" onclick="swapPlayers('A')">🔄</button>
+            </div>
+
             <div class="court-net"></div>
 
             <div class="court-half red-side">
@@ -258,10 +265,11 @@
                     <span style="position:absolute; top:2px; right:2px; font-size:0.6em; color:rgba(255,255,255,0.5);">奇(左)</span>
                 </div>
             </div>
-        </div>
-
-        <div class="swap-btn-container swap-right" id="swap-container-b">
-            <button class="btn-swap" onclick="swapPlayers('B')">🔄</button>
+            
+            <div class="swap-btn-container swap-right" id="swap-container-b">
+                <button class="btn-swap" onclick="swapPlayers('B')">🔄</button>
+            </div>
+            
         </div>
     </div>
     
@@ -406,7 +414,6 @@
         matchState.teamA = [...data.tA]; matchState.teamB = [...data.tB];
         pointHistory = []; 
         
-        // 🆕 新局開始時，重置換邊狀態
         document.getElementById('score-modal').classList.remove('court-swapped');
         
         document.getElementById('winner-overlay').style.display = 'none'; document.getElementById('score-modal').style.display = 'flex';
@@ -418,14 +425,10 @@
     function resetScore() { 
         matchState.scoreA=0; matchState.scoreB=0; matchState.isGameOver = false; 
         pointHistory = []; 
-        
-        // 🆕 歸零時，重置換邊狀態
         document.getElementById('score-modal').classList.remove('court-swapped');
-        
         document.getElementById('winner-overlay').style.display = 'none'; updateCourtVisuals(); 
     }
 
-    // 🆕 換邊按鈕專屬函式：只需切換 CSS Class 即可完成完美的視覺翻轉！
     function toggleCourtSwap() {
         document.getElementById('score-modal').classList.toggle('court-swapped');
     }
@@ -472,7 +475,7 @@
     
     function swapPlayers(team) { 
         if(matchState.isGameOver) return; 
-        if (matchState.scoreA > 0 || matchState.scoreB > 0) return; // 鎖定：大於 0 分禁止換位
+        if (matchState.scoreA > 0 || matchState.scoreB > 0) return; 
 
         if (team === 'A') [matchState.teamA[0], matchState.teamA[1]] = [matchState.teamA[1], matchState.teamA[0]]; 
         else [matchState.teamB[0], matchState.teamB[1]] = [matchState.teamB[1], matchState.teamB[0]]; 
@@ -508,7 +511,6 @@
             document.getElementById('service-msg').innerText = `發球：${sName} (${isEven?'偶數區':'奇數區'})`;
         }
 
-        // 控制 🔄 換位按鈕的顯示與隱藏
         let swapA = document.getElementById('swap-container-a');
         let swapB = document.getElementById('swap-container-b');
         if (swapA && swapB) {
