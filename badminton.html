@@ -74,7 +74,6 @@
         .blue-text { color: #4ecdc4; }
         .vs-text { font-size: 1.2em; color: #7f8c8d; font-style: italic; opacity: 0.7; }
         
-        /* 修正：移除 overflow: hidden 避免按鈕被切掉 */
         .court-container { flex: 1; display: flex; justify-content: center; align-items: center; padding: 10px; position: relative; }
         
         .badminton-court { width: 95vw; max-width: 650px; aspect-ratio: 1.8 / 1; background-color: #27ae60; border: 4px solid white; position: relative; display: flex; flex-direction: row; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: 0.3s; }
@@ -83,8 +82,11 @@
         .court-half.red-side { border-right: 2px solid rgba(255,255,255,0.3); }
         .court-half.blue-side { border-left: 2px solid rgba(255,255,255,0.3); }
         .service-box { flex: 1; width: 100%; box-sizing: border-box; border: 1px solid rgba(255,255,255,0.5); display: flex; justify-content: center; align-items: center; position: relative; cursor: pointer; }
+        
+        /* 玩家名牌 CSS 加上 transition 讓瞬移變滑順 */
         .player-name-tag { background: rgba(255,255,255,0.95); color: #333; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.95em; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: 0.3s; border: 2px solid transparent; white-space: nowrap; }
         .serving-highlight .player-name-tag { background: #f1c40f; color: #000; border: 2px solid #fff; transform: scale(1.15); box-shadow: 0 0 15px #f1c40f; z-index: 5; }
+        
         .sb-controls { background: #34495e; padding: 10px; display: flex; flex-direction: column; gap: 10px; }
         .score-btns { display: flex; gap: 20px; justify-content: center; width: 100%; max-width: 600px; margin: 0 auto; transition: 0.3s; }
         .btn-point { flex: 1; height: 55px; font-size: 1.3em; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
@@ -93,10 +95,9 @@
         .btn-point:active { transform: translateY(3px); box-shadow: none; }
         .mini-btn { width: 40px; height: 40px; border-radius: 8px; border:none; background: #7f8c8d; color:white; font-weight:bold; cursor: pointer;}
         
-        /* 修正：將按鈕層級調高，並讓它浮在球場內部邊緣 */
         .swap-btn-container { position: absolute; height: 100%; width: 40px; display: flex; flex-direction: column; justify-content: center; transition: 0.3s; z-index: 20; }
-        .swap-left { left: 10px; } /* 在左邊緣往內 10px */
-        .swap-right { right: 10px; } /* 在右邊緣往內 10px */
+        .swap-left { left: 10px; } 
+        .swap-right { right: 10px; } 
         .btn-swap { background: #95a5a6; color: white; border-radius: 50%; width: 40px; height: 40px; border: none; font-size: 1.2em; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         
         .game-status { text-align: center; color: #f1c40f; font-weight: bold; font-size: 1.1em; margin-bottom: 5px; min-height: 1.5em; }
@@ -296,7 +297,8 @@
     let consecutiveCounts = {}; let consecutiveRestCounts = {}; let totalGames = {};
     let totalWins = {}; let matchHistory = [];
     let historyDoubles = new Set(); let historySingles = new Set(); let roundCount = 0;
-    let matchState = { scoreA: 0, scoreB: 0, serverTeam: 'A', teamA: ['', ''], teamB: ['', ''], isGameOver: false, court: 0 };
+    // 🆕 核心狀態增加了 mode 屬性 (預設 2 = 雙打)
+    let matchState = { scoreA: 0, scoreB: 0, serverTeam: 'A', teamA: ['', ''], teamB: ['', ''], isGameOver: false, court: 0, mode: '2' };
     let pointHistory = []; 
 
     function initSystem() {
@@ -368,7 +370,8 @@
         let html = '';
         groups.forEach((g, i) => {
             let tA = mode==="1" ? [g[0]] : [g[0], g[1]]; let tB = mode==="1" ? [g[1]] : [g[2], g[3]];
-            let dataStr = JSON.stringify({ tA, tB, court: i+1 });
+            // 🆕 把 mode 也存進傳遞給計分板的資料裡
+            let dataStr = JSON.stringify({ tA, tB, court: i+1, mode: mode }); 
             let safeData = encodeURIComponent(dataStr);
             html += `<div class="match-card">
                 <div style="text-align:center;"><span class="court-badge">場地 ${i+1}</span></div>
@@ -409,6 +412,10 @@
 
     function openScoreboard(dataEnc) {
         let data = JSON.parse(decodeURIComponent(dataEnc));
+        
+        // 🆕 讀取是不是單打模式
+        matchState.mode = data.mode || "2"; 
+        
         matchState.scoreA = 0; matchState.scoreB = 0; matchState.serverTeam = 'A'; matchState.isGameOver = false; matchState.court = data.court;
         if (data.tA.length === 1) data.tA.push(""); if (data.tB.length === 1) data.tB.push("");
         matchState.teamA = [...data.tA]; matchState.teamB = [...data.tB];
@@ -440,11 +447,17 @@
             pointHistory.push(JSON.parse(JSON.stringify(matchState)));
             
             if (team === 'A') {
-                if (matchState.serverTeam === 'A') [matchState.teamA[0], matchState.teamA[1]] = [matchState.teamA[1], matchState.teamA[0]];
+                if (matchState.serverTeam === 'A') {
+                    // 🆕 雙打得分才需要交換左右站位，單打不用！
+                    if (matchState.mode !== "1") [matchState.teamA[0], matchState.teamA[1]] = [matchState.teamA[1], matchState.teamA[0]];
+                }
                 else matchState.serverTeam = 'A';
                 matchState.scoreA += 1;
             } else {
-                if (matchState.serverTeam === 'B') [matchState.teamB[0], matchState.teamB[1]] = [matchState.teamB[1], matchState.teamB[0]];
+                if (matchState.serverTeam === 'B') {
+                    // 🆕 雙打得分才需要交換左右站位，單打不用！
+                    if (matchState.mode !== "1") [matchState.teamB[0], matchState.teamB[1]] = [matchState.teamB[1], matchState.teamB[0]];
+                }
                 else matchState.serverTeam = 'B';
                 matchState.scoreB += 1;
             }
@@ -475,6 +488,7 @@
     
     function swapPlayers(team) { 
         if(matchState.isGameOver) return; 
+        if(matchState.mode === "1") return; // 🆕 單打禁止手動換位
         if (matchState.scoreA > 0 || matchState.scoreB > 0) return; 
 
         if (team === 'A') [matchState.teamA[0], matchState.teamA[1]] = [matchState.teamA[1], matchState.teamA[0]]; 
@@ -499,11 +513,35 @@
             overlay.style.display = 'flex'; return; 
         }
 
-        document.getElementById('p-red-even').innerText = matchState.teamA[0] || "-"; document.getElementById('p-red-odd').innerText = matchState.teamA[1] || "-";
-        document.getElementById('p-blue-even').innerText = matchState.teamB[0] || "-"; document.getElementById('p-blue-odd').innerText = matchState.teamB[1] || "-";
-        clearHighlights();
         let serverScore = matchState.serverTeam === 'A' ? matchState.scoreA : matchState.scoreB;
         let isEven = (serverScore % 2 === 0);
+
+        // 🆕 核心變更：單打/雙打不同的畫面渲染邏輯
+        if (matchState.mode === "1") {
+            // 單打模式：根據發球方分數，決定選手在左邊還是右邊
+            document.getElementById('p-red-even').innerText = isEven ? matchState.teamA[0] : "";
+            document.getElementById('p-red-odd').innerText = isEven ? "" : matchState.teamA[0];
+            
+            document.getElementById('p-blue-even').innerText = isEven ? matchState.teamB[0] : "";
+            document.getElementById('p-blue-odd').innerText = isEven ? "" : matchState.teamB[0];
+        } else {
+            // 雙打模式：照舊
+            document.getElementById('p-red-even').innerText = matchState.teamA[0] || "-";
+            document.getElementById('p-red-odd').innerText = matchState.teamA[1] || "-";
+            document.getElementById('p-blue-even').innerText = matchState.teamB[0] || "-";
+            document.getElementById('p-blue-odd').innerText = matchState.teamB[1] || "-";
+        }
+
+        // 🆕 自動隱藏空名牌，讓畫面乾淨！
+        document.querySelectorAll('.player-name-tag').forEach(tag => {
+            if (tag.innerText === "" || tag.innerText === "-") {
+                tag.style.display = "none";
+            } else {
+                tag.style.display = "block";
+            }
+        });
+
+        clearHighlights();
         let activeBoxId = matchState.serverTeam === 'A' ? (isEven ? 'box-red-even' : 'box-red-odd') : (isEven ? 'box-blue-even' : 'box-blue-odd');
         if (activeBoxId) {
             document.getElementById(activeBoxId).classList.add('serving-highlight');
@@ -511,15 +549,25 @@
             document.getElementById('service-msg').innerText = `發球：${sName} (${isEven?'偶數區':'奇數區'})`;
         }
 
+        // 🔄 換位按鈕顯示邏輯
         let swapA = document.getElementById('swap-container-a');
         let swapB = document.getElementById('swap-container-b');
         if (swapA && swapB) {
-            if (matchState.scoreA === 0 && matchState.scoreB === 0) {
-                swapA.style.opacity = '1'; swapA.style.pointerEvents = 'auto';
-                swapB.style.opacity = '1'; swapB.style.pointerEvents = 'auto';
+            if (matchState.mode === "1") {
+                // 🆕 單打模式徹底隱藏按鈕
+                swapA.style.display = 'none';
+                swapB.style.display = 'none';
             } else {
-                swapA.style.opacity = '0'; swapA.style.pointerEvents = 'none';
-                swapB.style.opacity = '0'; swapB.style.pointerEvents = 'none';
+                // 雙打模式：只有 0:0 才顯示
+                swapA.style.display = 'flex';
+                swapB.style.display = 'flex';
+                if (matchState.scoreA === 0 && matchState.scoreB === 0) {
+                    swapA.style.opacity = '1'; swapA.style.pointerEvents = 'auto';
+                    swapB.style.opacity = '1'; swapB.style.pointerEvents = 'auto';
+                } else {
+                    swapA.style.opacity = '0'; swapA.style.pointerEvents = 'none';
+                    swapB.style.opacity = '0'; swapB.style.pointerEvents = 'none';
+                }
             }
         }
     }
