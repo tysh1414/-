@@ -53,6 +53,12 @@
         /* 歷史紀錄視窗 */
         .history-box { background: white; width: 95%; max-width: 550px; max-height: 80vh; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; }
         .history-header { background: #f8f9fa; padding: 15px; font-weight: bold; font-size: 1.2em; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* 🆕 歷史紀錄頁籤 (Tab) 樣式 */
+        .history-tabs { display: flex; justify-content: center; gap: 10px; padding: 10px; background: #ecf0f1; border-bottom: 1px solid #ddd; }
+        .tab-btn { background: #bdc3c7; border: none; padding: 6px 15px; border-radius: 20px; cursor: pointer; color: white; font-weight: bold; font-size: 0.9em; flex: 1; }
+        .tab-btn.active { background: #3498db; }
+        
         .history-content { padding: 15px; overflow-y: auto; flex: 1; }
         
         .history-item { 
@@ -60,6 +66,7 @@
             display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 5px;
         }
         .history-court-badge { background: #34495e; color: white; padding: 3px 6px; border-radius: 4px; font-size: 0.8em; margin-right: 5px; }
+        .history-mode-badge { background: #9b59b6; color: white; padding: 3px 6px; border-radius: 4px; font-size: 0.8em; margin-right: 5px; }
         .winner-text { color: #2ecc71; font-weight: bold; }
         .score-text { background: #ecf0f1; padding: 2px 8px; border-radius: 10px; font-weight: bold; color: #2c3e50; margin: 0 5px;}
 
@@ -67,7 +74,8 @@
         #score-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #2c3e50; z-index: 1000; flex-direction: column; overflow-y: auto; }
         .sb-header { background: #34495e; color: white; padding: 8px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #2c3e50; }
         .sb-score-bar { display: flex; justify-content: center; align-items: center; gap: 20px; padding: 10px 0; background: #2c3e50; color: white; transition: 0.3s; }
-        .team-block { text-align: center; min-width: 100px; }
+        .team-block { text-align: center; min-width: 100px; padding: 10px; border-radius: 12px; transition: 0.2s; }
+        .team-block:hover { background: rgba(255,255,255,0.1); } /* 提示可點擊 */
         .team-name { font-size: 1.2em; font-weight: bold; margin-bottom: 5px; }
         .big-score { font-size: 3.5em; font-weight: 800; line-height: 1; display: inline-block;}
         .red-text { color: #ff6b6b; }
@@ -83,11 +91,10 @@
         .court-half.blue-side { border-left: 2px solid rgba(255,255,255,0.3); }
         .service-box { flex: 1; width: 100%; box-sizing: border-box; border: 1px solid rgba(255,255,255,0.5); display: flex; justify-content: center; align-items: center; position: relative; cursor: pointer; }
         
-        /* 玩家名牌 CSS 加上 transition 讓瞬移變滑順 */
         .player-name-tag { background: rgba(255,255,255,0.95); color: #333; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.95em; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: 0.3s; border: 2px solid transparent; white-space: nowrap; }
         .serving-highlight .player-name-tag { background: #f1c40f; color: #000; border: 2px solid #fff; transform: scale(1.15); box-shadow: 0 0 15px #f1c40f; z-index: 5; }
         
-        .sb-controls { background: #34495e; padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+        .sb-controls { background: #34495e; padding: 10px; display: flex; flex-direction: column; gap: 10px; align-items: center; }
         .score-btns { display: flex; gap: 20px; justify-content: center; width: 100%; max-width: 600px; margin: 0 auto; transition: 0.3s; }
         .btn-point { flex: 1; height: 55px; font-size: 1.3em; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-red { background: #ff6b6b; color: white; box-shadow: 0 4px #c0392b; }
@@ -169,7 +176,7 @@
             <button class="btn-info" onclick="openHistory()" style="margin-top:0; flex:1;">📜 查看歷史紀錄</button>
         </div>
         <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:10px;">
-            <button class="btn-warning" onclick="resetHistoryOnly()" style="margin-top:0; flex:1;">♻️ 重置搭檔</button>
+            <button class="btn-warning" onclick="resetHistoryOnly()" style="margin-top:0; flex:1;">♻️️ 重置搭檔</button>
             <button class="btn-danger" onclick="fullResetKeepNames()" style="margin-top:0; flex:1;">🗑️ 全部重置</button>
         </div>
     </div>
@@ -182,12 +189,21 @@
     </div>
 </div>
 
+<!-- 📜 歷史紀錄 Modal -->
 <div id="history-modal" class="modal-overlay">
     <div class="history-box">
         <div class="history-header">
             <span>📜 比賽紀錄</span>
             <button onclick="closeHistory()" style="background:none; border:none; font-size:1.2em; width:auto; padding:0; margin:0; cursor:pointer;">✕</button>
         </div>
+        
+        <!-- 🆕 新增：歷史紀錄頁籤分類 -->
+        <div class="history-tabs">
+            <button class="tab-btn active" id="tab-all" onclick="renderHistory('all')">全部</button>
+            <button class="tab-btn" id="tab-2" onclick="renderHistory('2')">雙打</button>
+            <button class="tab-btn" id="tab-1" onclick="renderHistory('1')">單打</button>
+        </div>
+
         <div id="history-list" class="history-content">
             <div style="text-align:center; color:#ccc;">暫無紀錄</div>
         </div>
@@ -198,7 +214,7 @@
     <div id="winner-overlay">
         <div style="font-size: 4em; margin-bottom: 10px;">🏆</div>
         <div class="winner-title" id="winner-msg">紅隊 獲勝！</div>
-        <div class="winner-subtitle">比賽結束</div>
+        <div class="winner-subtitle" id="winner-sub">比賽結束</div>
         <div>
             <button class="btn-overlay" style="background:#27ae60; color:white;" onclick="saveMatchResult()">💾 儲存並結束</button>
             <button class="btn-overlay" style="background:#e74c3c; color:white;" onclick="resetScore()">↺ 重新記分</button>
@@ -219,14 +235,17 @@
     </div>
 
     <div class="sb-score-bar">
-        <div class="team-block">
+        <!-- 🆕 新增：點擊修改分數 (onclick 事件與提示) -->
+        <div class="team-block" onclick="manualEditScore('A')" style="cursor:pointer;" title="點擊修改分數">
             <div class="team-name red-text">🔴 紅隊</div>
             <div class="big-score red-text" id="disp-score-a">0</div>
+            <div style="font-size:0.8em; color:#95a5a6; margin-top:5px;">✏️ 點擊改分</div>
         </div>
         <div class="vs-text">VS</div>
-        <div class="team-block">
+        <div class="team-block" onclick="manualEditScore('B')" style="cursor:pointer;" title="點擊修改分數">
             <div class="team-name blue-text">🔵 藍隊</div>
             <div class="big-score blue-text" id="disp-score-b">0</div>
+            <div style="font-size:0.8em; color:#95a5a6; margin-top:5px;">✏️ 點擊改分</div>
         </div>
     </div>
     
@@ -236,15 +255,11 @@
     </div>
 
     <div class="court-container">
-        
         <div class="badminton-court">
-            
             <div class="swap-btn-container swap-left" id="swap-container-a">
                 <button class="btn-swap" onclick="swapPlayers('A')">🔄</button>
             </div>
-
             <div class="court-net"></div>
-
             <div class="court-half red-side">
                 <div class="service-box" id="box-red-odd" onclick="manualSetServer('A', 'odd')">
                     <div class="player-name-tag" id="p-red-odd">P2</div>
@@ -255,7 +270,6 @@
                     <span style="position:absolute; top:2px; left:2px; font-size:0.6em; color:rgba(255,255,255,0.5);">偶(右)</span>
                 </div>
             </div>
-
             <div class="court-half blue-side">
                 <div class="service-box" id="box-blue-even" onclick="manualSetServer('B', 'even')">
                     <div class="player-name-tag" id="p-blue-even">P4</div>
@@ -266,11 +280,9 @@
                     <span style="position:absolute; top:2px; right:2px; font-size:0.6em; color:rgba(255,255,255,0.5);">奇(左)</span>
                 </div>
             </div>
-            
             <div class="swap-btn-container swap-right" id="swap-container-b">
                 <button class="btn-swap" onclick="swapPlayers('B')">🔄</button>
             </div>
-            
         </div>
     </div>
     
@@ -288,6 +300,8 @@
                 <button class="mini-btn" onclick="addPoint('B', -1)">-1</button>
             </div>
         </div>
+        <!-- 🆕 新增：提前結束比賽按鈕 -->
+        <button onclick="forceEndMatch()" style="background:transparent; color:#bdc3c7; border:1px solid #7f8c8d; padding:8px 15px; border-radius:8px; margin-top:5px; max-width: 200px; font-size:0.9em;">🏁 提前結束並結算</button>
     </div>
 </div>
 
@@ -297,9 +311,9 @@
     let consecutiveCounts = {}; let consecutiveRestCounts = {}; let totalGames = {};
     let totalWins = {}; let matchHistory = [];
     let historyDoubles = new Set(); let historySingles = new Set(); let roundCount = 0;
-    // 🆕 核心狀態增加了 mode 屬性 (預設 2 = 雙打)
     let matchState = { scoreA: 0, scoreB: 0, serverTeam: 'A', teamA: ['', ''], teamB: ['', ''], isGameOver: false, court: 0, mode: '2' };
     let pointHistory = []; 
+    let currentHistoryTab = 'all'; // 記錄目前在哪個歷史紀錄分頁
 
     function initSystem() {
         const input = document.getElementById('input-names').value;
@@ -370,7 +384,6 @@
         let html = '';
         groups.forEach((g, i) => {
             let tA = mode==="1" ? [g[0]] : [g[0], g[1]]; let tB = mode==="1" ? [g[1]] : [g[2], g[3]];
-            // 🆕 把 mode 也存進傳遞給計分板的資料裡
             let dataStr = JSON.stringify({ tA, tB, court: i+1, mode: mode }); 
             let safeData = encodeURIComponent(dataStr);
             html += `<div class="match-card">
@@ -394,35 +407,52 @@
         });
     }
 
-    function openHistory() { document.getElementById('history-modal').style.display = 'flex'; }
+    function openHistory() { 
+        renderHistory(currentHistoryTab); // 每次打開保持在最後瀏覽的分頁
+        document.getElementById('history-modal').style.display = 'flex'; 
+    }
+    
     function closeHistory() { document.getElementById('history-modal').style.display = 'none'; }
-    function renderHistory() {
+    
+    // 🆕 支援單打/雙打頁籤分類的歷史紀錄算繪
+    function renderHistory(filter = 'all') {
+        currentHistoryTab = filter;
+        
+        // 更新按鈕外觀
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('tab-' + filter).classList.add('active');
+        
         const div = document.getElementById('history-list');
-        if (matchHistory.length === 0) { div.innerHTML = '<div style="text-align:center; color:#ccc; margin-top:20px;">暫無紀錄</div>'; return; }
+        
+        // 過濾陣列
+        let filteredHistory = matchHistory.filter(m => filter === 'all' || m.mode === filter);
+        
+        if (filteredHistory.length === 0) { 
+            div.innerHTML = '<div style="text-align:center; color:#ccc; margin-top:20px;">暫無此分類紀錄</div>'; 
+            return; 
+        }
+        
         let html = '';
-        matchHistory.forEach(m => {
+        filteredHistory.forEach(m => {
             let winNames = m.winner === 'A' ? m.teamA.join('&') : m.teamB.join('&');
             let loseNames = m.winner === 'A' ? m.teamB.join('&') : m.teamA.join('&');
             let scoreStr = m.winner === 'A' ? `${m.scoreA} - ${m.scoreB}` : `${m.scoreB} - ${m.scoreA}`;
             let courtHtml = m.court ? `<span class="history-court-badge">場地 ${m.court}</span>` : '';
-            html += `<div class="history-item"><div style="display:flex; align-items:center;">${courtHtml}<span class="winner-text">🏆 ${winNames}</span></div><div><span class="score-text">${scoreStr}</span><span style="color:#7f8c8d;">${loseNames}</span></div></div>`;
+            let modeHtml = `<span class="history-mode-badge">${m.mode === '1' ? '單打' : '雙打'}</span>`;
+            
+            html += `<div class="history-item"><div style="display:flex; align-items:center;">${courtHtml}${modeHtml}<span class="winner-text">🏆 ${winNames}</span></div><div><span class="score-text">${scoreStr}</span><span style="color:#7f8c8d;">${loseNames}</span></div></div>`;
         });
         div.innerHTML = html;
     }
 
     function openScoreboard(dataEnc) {
         let data = JSON.parse(decodeURIComponent(dataEnc));
-        
-        // 🆕 讀取是不是單打模式
         matchState.mode = data.mode || "2"; 
-        
         matchState.scoreA = 0; matchState.scoreB = 0; matchState.serverTeam = 'A'; matchState.isGameOver = false; matchState.court = data.court;
         if (data.tA.length === 1) data.tA.push(""); if (data.tB.length === 1) data.tB.push("");
         matchState.teamA = [...data.tA]; matchState.teamB = [...data.tB];
         pointHistory = []; 
-        
         document.getElementById('score-modal').classList.remove('court-swapped');
-        
         document.getElementById('winner-overlay').style.display = 'none'; document.getElementById('score-modal').style.display = 'flex';
         updateCourtVisuals();
     }
@@ -440,6 +470,61 @@
         document.getElementById('score-modal').classList.toggle('court-swapped');
     }
     
+    // 🆕 手動修改分數 (點擊數字觸發)
+    function manualEditScore(team) {
+        if (matchState.isGameOver) return;
+        
+        let currentScore = team === 'A' ? matchState.scoreA : matchState.scoreB;
+        let teamName = team === 'A' ? "紅隊" : "藍隊";
+        
+        let input = prompt(`【手動改分】\n請輸入 ${teamName} 的正確分數：`, currentScore);
+        
+        // 檢查使用者是否有輸入且是數字
+        if (input !== null && input.trim() !== "" && !isNaN(input)) {
+            let newScore = Math.max(0, parseInt(input)); // 確保不會有負數
+            
+            // 💡 存入時光機！就算手動改錯，也可以按 "-1 哎呀按錯了" 退回！
+            pointHistory.push(JSON.parse(JSON.stringify(matchState)));
+            
+            if (team === 'A') {
+                matchState.scoreA = newScore;
+            } else {
+                matchState.scoreB = newScore;
+            }
+            updateCourtVisuals();
+        }
+    }
+    
+    // 🆕 提前結束比賽邏輯
+    function forceEndMatch() {
+        if (matchState.isGameOver) return;
+        
+        if (matchState.scoreA === matchState.scoreB) {
+            alert("⚠️ 目前平手！\n請先分出高下，或是手動修改分數後再結束比賽。");
+            return;
+        }
+        
+        if (confirm("🏁 確定要提前結束比賽並儲存成績嗎？\n(分數較高的一方將獲勝)")) {
+            // 存入時光機 (讓提前結束也能夠退回！)
+            pointHistory.push(JSON.parse(JSON.stringify(matchState)));
+            
+            matchState.isGameOver = true;
+            clearHighlights();
+            document.getElementById('service-msg').innerText = "比賽提前結束";
+            
+            let winner = matchState.scoreA > matchState.scoreB ? 'A' : 'B';
+            const overlay = document.getElementById('winner-overlay'); 
+            const winMsg = document.getElementById('winner-msg');
+            const subMsg = document.getElementById('winner-sub');
+            
+            winMsg.innerText = (winner==='A' ? "🔴 紅隊" : "🔵 藍隊") + " 提前獲勝！"; 
+            winMsg.style.color = (winner==='A' ? "#ff6b6b" : "#4ecdc4");
+            subMsg.innerText = "因操作提前結算";
+            
+            overlay.style.display = 'flex';
+        }
+    }
+
     function addPoint(team, delta = 1) {
         if (matchState.isGameOver) return;
         
@@ -448,14 +533,12 @@
             
             if (team === 'A') {
                 if (matchState.serverTeam === 'A') {
-                    // 🆕 雙打得分才需要交換左右站位，單打不用！
                     if (matchState.mode !== "1") [matchState.teamA[0], matchState.teamA[1]] = [matchState.teamA[1], matchState.teamA[0]];
                 }
                 else matchState.serverTeam = 'A';
                 matchState.scoreA += 1;
             } else {
                 if (matchState.serverTeam === 'B') {
-                    // 🆕 雙打得分才需要交換左右站位，單打不用！
                     if (matchState.mode !== "1") [matchState.teamB[0], matchState.teamB[1]] = [matchState.teamB[1], matchState.teamB[0]];
                 }
                 else matchState.serverTeam = 'B';
@@ -463,9 +546,8 @@
             }
         } else {
             let lastState = pointHistory.length > 0 ? pointHistory[pointHistory.length - 1] : null;
-            if (lastState && 
-               ((team === 'A' && matchState.scoreA === lastState.scoreA + 1 && matchState.scoreB === lastState.scoreB) ||
-                (team === 'B' && matchState.scoreB === lastState.scoreB + 1 && matchState.scoreA === lastState.scoreA))) {
+            // 支援手動改分及提前結束的退回
+            if (lastState) {
                 matchState = pointHistory.pop();
             } else {
                 if (team === 'A') matchState.scoreA = Math.max(0, matchState.scoreA - 1);
@@ -480,6 +562,7 @@
             matchState = pointHistory.pop();
             matchState.isGameOver = false; 
             document.getElementById('winner-overlay').style.display = 'none';
+            document.getElementById('winner-sub').innerText = "比賽結束"; // 恢復副標題
             updateCourtVisuals();
         }
     }
@@ -488,7 +571,7 @@
     
     function swapPlayers(team) { 
         if(matchState.isGameOver) return; 
-        if(matchState.mode === "1") return; // 🆕 單打禁止手動換位
+        if(matchState.mode === "1") return; 
         if (matchState.scoreA > 0 || matchState.scoreB > 0) return; 
 
         if (team === 'A') [matchState.teamA[0], matchState.teamA[1]] = [matchState.teamA[1], matchState.teamA[0]]; 
@@ -506,33 +589,29 @@
         if (isDeuce) { document.getElementById('game-info').innerText = "🔥 DEUCE (需贏 2 分)"; if (diff >= 2) winner = matchState.scoreA > matchState.scoreB ? 'A' : 'B'; }
         else { document.getElementById('game-info').innerText = `目標: ${target} 分`; if (matchState.scoreA >= target) winner = 'A'; if (matchState.scoreB >= target) winner = 'B'; }
 
-        if (winner) {
+        if (winner && !matchState.isGameOver) { // 加上 !matchState.isGameOver 避免與手動提前結束打架
             matchState.isGameOver = true; clearHighlights(); document.getElementById('service-msg').innerText = "比賽結束";
             const overlay = document.getElementById('winner-overlay'); const winMsg = document.getElementById('winner-msg');
             winMsg.innerText = (winner==='A' ? "🔴 紅隊" : "🔵 藍隊") + " 獲勝！"; winMsg.style.color = (winner==='A' ? "#ff6b6b" : "#4ecdc4");
+            document.getElementById('winner-sub').innerText = "比賽結束";
             overlay.style.display = 'flex'; return; 
         }
 
         let serverScore = matchState.serverTeam === 'A' ? matchState.scoreA : matchState.scoreB;
         let isEven = (serverScore % 2 === 0);
 
-        // 🆕 核心變更：單打/雙打不同的畫面渲染邏輯
         if (matchState.mode === "1") {
-            // 單打模式：根據發球方分數，決定選手在左邊還是右邊
             document.getElementById('p-red-even').innerText = isEven ? matchState.teamA[0] : "";
             document.getElementById('p-red-odd').innerText = isEven ? "" : matchState.teamA[0];
-            
             document.getElementById('p-blue-even').innerText = isEven ? matchState.teamB[0] : "";
             document.getElementById('p-blue-odd').innerText = isEven ? "" : matchState.teamB[0];
         } else {
-            // 雙打模式：照舊
             document.getElementById('p-red-even').innerText = matchState.teamA[0] || "-";
             document.getElementById('p-red-odd').innerText = matchState.teamA[1] || "-";
             document.getElementById('p-blue-even').innerText = matchState.teamB[0] || "-";
             document.getElementById('p-blue-odd').innerText = matchState.teamB[1] || "-";
         }
 
-        // 🆕 自動隱藏空名牌，讓畫面乾淨！
         document.querySelectorAll('.player-name-tag').forEach(tag => {
             if (tag.innerText === "" || tag.innerText === "-") {
                 tag.style.display = "none";
@@ -549,18 +628,13 @@
             document.getElementById('service-msg').innerText = `發球：${sName} (${isEven?'偶數區':'奇數區'})`;
         }
 
-        // 🔄 換位按鈕顯示邏輯
         let swapA = document.getElementById('swap-container-a');
         let swapB = document.getElementById('swap-container-b');
         if (swapA && swapB) {
             if (matchState.mode === "1") {
-                // 🆕 單打模式徹底隱藏按鈕
-                swapA.style.display = 'none';
-                swapB.style.display = 'none';
+                swapA.style.display = 'none'; swapB.style.display = 'none';
             } else {
-                // 雙打模式：只有 0:0 才顯示
-                swapA.style.display = 'flex';
-                swapB.style.display = 'flex';
+                swapA.style.display = 'flex'; swapB.style.display = 'flex';
                 if (matchState.scoreA === 0 && matchState.scoreB === 0) {
                     swapA.style.opacity = '1'; swapA.style.pointerEvents = 'auto';
                     swapB.style.opacity = '1'; swapB.style.pointerEvents = 'auto';
@@ -578,8 +652,16 @@
         let winnerSide = (matchState.scoreA > matchState.scoreB) ? 'A' : 'B';
         let winningPlayers = (winnerSide === 'A') ? matchState.teamA : matchState.teamB;
         winningPlayers.forEach(p => { if(p && p !== "") totalWins[p] = (totalWins[p] || 0) + 1; });
-        matchHistory.unshift({ winner: winnerSide, scoreA: matchState.scoreA, scoreB: matchState.scoreB, teamA: [...matchState.teamA], teamB: [...matchState.teamB], court: matchState.court });
-        renderHistory(); updateStatsTable(); closeScoreboard();
+        
+        // 🆕 儲存紀錄時，連同 mode (單/雙打) 一起存入，作為後續書籤分類的依據
+        matchHistory.unshift({ 
+            winner: winnerSide, scoreA: matchState.scoreA, scoreB: matchState.scoreB, 
+            teamA: [...matchState.teamA], teamB: [...matchState.teamB], court: matchState.court,
+            mode: matchState.mode 
+        });
+        
+        renderHistory(currentHistoryTab); // 重新繪製歷史清單
+        updateStatsTable(); closeScoreboard();
     }
 </script>
 </body>
