@@ -146,14 +146,16 @@
     <div class="section" id="control-section" style="display:none;">
         <div class="control-row">
             <label style="margin:0;">模式：</label>
+            <!-- 🆕 新增 onChange 觸發分隔線 -->
             <div class="radio-group">
-                <label class="radio-label"><input type="radio" name="mode" value="2" checked> 雙打</label>
-                <label class="radio-label"><input type="radio" name="mode" value="1"> 單打</label>
+                <label class="radio-label"><input type="radio" name="mode" value="2" checked onchange="addHistorySeparator('切換為雙打模式')"> 雙打</label>
+                <label class="radio-label"><input type="radio" name="mode" value="1" onchange="addHistorySeparator('切換為單打模式')"> 單打</label>
             </div>
         </div>
         <div class="control-row">
             <label style="margin:0;">可用場地數：</label>
-            <select id="court-count">
+            <!-- 🆕 新增 onChange 觸發分隔線 -->
+            <select id="court-count" onchange="addHistorySeparator('變更場地數量')">
                 <option value="1">1 個場</option>
                 <option value="2">2 個場</option>
                 <option value="3">3 個場</option>
@@ -176,7 +178,7 @@
         </div>
         <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:10px;">
             <button class="btn-warning" onclick="resetHistoryOnly()" style="margin-top:0; flex:1;">♻ 重置搭檔</button>
-            <button class="btn-danger" onclick="fullResetKeepNames()" style="margin-top:0; flex:1;">🗑️ 全部重置</button>
+            <button class="btn-danger" onclick="fullResetKeepNames()" style="margin-top:0; flex:1;">🗑️️ 全部重置</button>
         </div>
     </div>
 
@@ -208,7 +210,7 @@
     </div>
 </div>
 
-<!-- ✏️ 同步雙方分數 Modal (層級設為1050，浮在記分板之上) -->
+<!-- ✏️ 同步雙方分數 Modal -->
 <div id="edit-score-modal" class="modal-overlay" style="z-index: 1050;">
     <div class="modal-box" style="max-width: 320px;">
         <h3 style="margin-top:0; color:#2c3e50;">✏️ 同步雙方分數</h3>
@@ -257,7 +259,6 @@
     </div>
 
     <div class="sb-score-bar">
-        <!-- 點擊觸發「同步修改分數」視窗 -->
         <div class="team-block" onclick="manualEditScore('A')" title="點擊修改分數">
             <div class="team-name red-text">🔴 紅隊</div>
             <div class="big-score red-text" id="disp-score-a">0</div>
@@ -350,7 +351,37 @@
         document.getElementById('result-container').innerHTML = '<p style="text-align:center; color:#bdc3c7;">準備就緒</p>';
     }
     
-    function resetHistoryOnly() { if(confirm("清除搭檔紀錄？")) { historyDoubles.clear(); historySingles.clear(); alert("已重置"); } }
+    // 🆕 處理分隔線的獨立函數
+    function addHistorySeparator(reason) {
+        if (matchHistory.length === 0) return; // 沒打過比賽不需要加分隔線
+        
+        // 如果第一筆已經是分隔線，就把原因合併，避免連續刷一整排分隔線
+        if (matchHistory[0].isSeparator) {
+            if (!matchHistory[0].message.includes(reason)) {
+                matchHistory[0].message += '、' + reason;
+                if (document.getElementById('history-modal').style.display === 'flex') {
+                    renderHistory(currentHistoryTab);
+                }
+            }
+            return;
+        }
+        
+        // 將分隔線作為特殊的物件存進歷史紀錄
+        matchHistory.unshift({ isSeparator: true, message: reason });
+        
+        // 如果歷史視窗開著就即時更新
+        if (document.getElementById('history-modal').style.display === 'flex') {
+            renderHistory(currentHistoryTab);
+        }
+    }
+    
+    function resetHistoryOnly() { 
+        if(confirm("清除搭檔紀錄？")) { 
+            historyDoubles.clear(); historySingles.clear(); 
+            addHistorySeparator('重置搭檔記憶'); // 觸發分隔線
+            alert("已重置"); 
+        } 
+    }
     
     function fullResetKeepNames() {
         if(!confirm("確定要全部重置嗎？\n(所有戰績將被清空，但保留名字)")) return;
@@ -439,14 +470,34 @@
         currentHistoryTab = filter;
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         document.getElementById('tab-' + filter).classList.add('active');
+        
         const div = document.getElementById('history-list');
-        let filteredHistory = matchHistory.filter(m => filter === 'all' || m.mode === filter);
+        
+        // 🆕 過濾邏輯：如果是分隔線(isSeparator)，只在 'all' 顯示
+        let filteredHistory = matchHistory.filter(m => {
+            if (m.isSeparator) return filter === 'all';
+            return filter === 'all' || m.mode === filter;
+        });
+        
         if (filteredHistory.length === 0) { 
             div.innerHTML = '<div style="text-align:center; color:#ccc; margin-top:20px;">暫無此分類紀錄</div>'; 
             return; 
         }
+        
         let html = '';
         filteredHistory.forEach(m => {
+            // 🆕 算繪分隔線的特殊 HTML
+            if (m.isSeparator) {
+                html += `
+                <div style="display:flex; align-items:center; margin: 15px 0; color:#95a5a6;">
+                    <div style="flex:1; height:1px; background:#bdc3c7;"></div>
+                    <span style="padding:0 10px; font-size:0.85em;">⚙️ ${m.message}</span>
+                    <div style="flex:1; height:1px; background:#bdc3c7;"></div>
+                </div>`;
+                return; // 跳過畫比賽卡片
+            }
+
+            // 一般比賽紀錄渲染
             let winNames = m.winner === 'A' ? m.teamA.join('&') : m.teamB.join('&');
             let loseNames = m.winner === 'A' ? m.teamB.join('&') : m.teamA.join('&');
             let scoreStr = m.winner === 'A' ? `${m.scoreA} - ${m.scoreB}` : `${m.scoreB} - ${m.scoreA}`;
@@ -483,18 +534,11 @@
         document.getElementById('score-modal').classList.toggle('court-swapped');
     }
     
-    // 🆕 全新：同步修改分數的專屬視窗邏輯
     function manualEditScore(focusTeam) {
         if (matchState.isGameOver) return;
-        
-        // 把目前分數塞進輸入框
         document.getElementById('edit-score-a').value = matchState.scoreA;
         document.getElementById('edit-score-b').value = matchState.scoreB;
-        
-        // 顯示視窗
         document.getElementById('edit-score-modal').style.display = 'flex';
-        
-        // 自動將游標對準你剛剛點擊的那一隊，方便直接打字
         if (focusTeam === 'A') document.getElementById('edit-score-a').focus();
         else document.getElementById('edit-score-b').focus();
     }
@@ -506,48 +550,32 @@
     function confirmEditScore() {
         let newA = parseInt(document.getElementById('edit-score-a').value);
         let newB = parseInt(document.getElementById('edit-score-b').value);
-        
         if (isNaN(newA) || isNaN(newB) || newA < 0 || newB < 0) {
-            alert("請輸入有效的正整數分數！");
-            return;
+            alert("請輸入有效的正整數分數！"); return;
         }
-        
-        // 存入時光機 (支援退回)
         pointHistory.push(JSON.parse(JSON.stringify(matchState)));
-        
-        // 同時更新雙方分數
-        matchState.scoreA = newA;
-        matchState.scoreB = newB;
-        
-        // 關閉小視窗並更新畫面 (若達標會順暢地跳出勝利畫面)
-        closeEditScore();
-        updateCourtVisuals();
+        matchState.scoreA = newA; matchState.scoreB = newB;
+        closeEditScore(); updateCourtVisuals();
     }
     
     function forceEndMatch() {
         if (matchState.isGameOver) return;
-        
         if (matchState.scoreA === matchState.scoreB) {
             alert("⚠️ 目前平手！\n請先分出高下，或是手動修改分數後再結束比賽。");
             return;
         }
-        
         if (confirm("🏁 確定要提前結束比賽並儲存成績嗎？\n(分數較高的一方將獲勝)")) {
             pointHistory.push(JSON.parse(JSON.stringify(matchState)));
-            
             matchState.isGameOver = true;
             clearHighlights();
             document.getElementById('service-msg').innerText = "比賽提前結束";
-            
             let winner = matchState.scoreA > matchState.scoreB ? 'A' : 'B';
             const overlay = document.getElementById('winner-overlay'); 
             const winMsg = document.getElementById('winner-msg');
             const subMsg = document.getElementById('winner-sub');
-            
             winMsg.innerText = (winner==='A' ? "🔴 紅隊" : "🔵 藍隊") + " 提前獲勝！"; 
             winMsg.style.color = (winner==='A' ? "#ff6b6b" : "#4ecdc4");
             subMsg.innerText = "因操作提前結算";
-            
             overlay.style.display = 'flex';
         }
     }
