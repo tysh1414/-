@@ -69,6 +69,11 @@
         .winner-text { color: #2ecc71; font-weight: bold; }
         .score-text { background: #ecf0f1; padding: 2px 8px; border-radius: 10px; font-weight: bold; color: #2c3e50; margin: 0 5px;}
 
+        /* 🆕 記分歷程 (時光機列表) 的專屬 CSS */
+        .point-log-item { background: #fff; border: 1px solid #eee; padding: 12px; margin-bottom: 8px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .point-log-score { font-size: 1.3em; font-weight: bold; }
+        .btn-revert { background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.9em; font-weight:bold; }
+
         /* 記分板 Modal */
         #score-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #2c3e50; z-index: 1000; flex-direction: column; overflow-y: auto; }
         .sb-header { background: #34495e; color: white; padding: 8px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #2c3e50; }
@@ -188,7 +193,7 @@
     </div>
 </div>
 
-<!-- 📜 歷史紀錄 Modal -->
+<!-- 📜 整體比賽歷史紀錄 Modal -->
 <div id="history-modal" class="modal-overlay">
     <div class="history-box">
         <div class="history-header">
@@ -231,6 +236,19 @@
     </div>
 </div>
 
+<!-- 🆕 🕒 記分歷程 (時光機列表) Modal -->
+<div id="point-history-modal" class="modal-overlay" style="z-index: 1060;">
+    <div class="history-box" style="max-height: 75vh;">
+        <div class="history-header">
+            <span>🕒 記分歷程與退回</span>
+            <button onclick="closePointHistory()" style="background:none; border:none; font-size:1.2em; cursor:pointer; margin:0; padding:0; width:auto;">✕</button>
+        </div>
+        <div id="point-history-list" class="history-content">
+            <!-- 列表將由 JS 動態生成 -->
+        </div>
+    </div>
+</div>
+
 <!-- 🏸 記分板 Modal -->
 <div id="score-modal">
     <div id="winner-overlay">
@@ -248,11 +266,13 @@
     </div>
 
     <div class="sb-header">
-        <span onclick="closeScoreboard()" style="cursor:pointer; font-weight:bold;">❮ 返回列表</span>
+        <span onclick="closeScoreboard()" style="cursor:pointer; font-weight:bold;">❮ 返回</span>
         <span>🏸 現場記分</span>
-        <div style="display:flex; gap:10px;">
-            <button onclick="toggleCourtSwap()" style="background:#2980b9; color:white; border:none; border-radius:4px; padding:5px 10px; font-size:0.85em; cursor:pointer; font-weight:bold;">🔁 換邊</button>
-            <button onclick="resetScore()" style="background:#e74c3c; width:auto; padding:5px 10px; font-size:0.85em; margin:0; border:none; border-radius:4px; color:white; font-weight:bold; cursor:pointer;">歸零</button>
+        <div style="display:flex; gap:8px;">
+            <!-- 🆕 新增：記分歷程按鈕 -->
+            <button onclick="openPointHistory()" style="background:#8e44ad; color:white; border:none; border-radius:4px; padding:5px 8px; font-size:0.85em; cursor:pointer; font-weight:bold;">🕒 歷程</button>
+            <button onclick="toggleCourtSwap()" style="background:#2980b9; color:white; border:none; border-radius:4px; padding:5px 8px; font-size:0.85em; cursor:pointer; font-weight:bold;">🔁 換邊</button>
+            <button onclick="resetScore()" style="background:#e74c3c; width:auto; padding:5px 8px; font-size:0.85em; margin:0; border:none; border-radius:4px; color:white; font-weight:bold; cursor:pointer;">歸零</button>
         </div>
     </div>
 
@@ -538,6 +558,77 @@
             html += `<div class="history-item"><div style="display:flex; align-items:center;">${courtHtml}${modeHtml}<span class="winner-text">🏆 ${winNames}</span></div><div><span class="score-text">${scoreStr}</span><span style="color:#7f8c8d;">${loseNames}</span></div></div>`;
         });
         div.innerHTML = html;
+    }
+
+    // 🆕 記分歷程 (時光機列表) 的開啟與關閉
+    function openPointHistory() {
+        renderPointHistory();
+        document.getElementById('point-history-modal').style.display = 'flex';
+    }
+
+    function closePointHistory() {
+        document.getElementById('point-history-modal').style.display = 'none';
+    }
+
+    // 🆕 算繪記分歷程列表
+    function renderPointHistory() {
+        const list = document.getElementById('point-history-list');
+        
+        if (pointHistory.length === 0 && matchState.scoreA === 0 && matchState.scoreB === 0) {
+            list.innerHTML = '<div style="text-align:center; color:#ccc; padding:20px;">尚未開始記分</div>';
+            return;
+        }
+
+        let html = '';
+        
+        // 渲染「現在最新的狀態」在最上面
+        html += `
+        <div class="point-log-item" style="background:#e8f8f5; border-color:#2ecc71;">
+            <div>
+                <span style="color:#2ecc71; font-weight:bold;">📍 目前比分</span>
+            </div>
+            <div class="point-log-score">🔴 ${matchState.scoreA} - ${matchState.scoreB} 🔵</div>
+            <div>
+                <button disabled style="background:#bdc3c7; color:white; border:none; padding:6px 12px; border-radius:6px; font-size:0.9em; font-weight:bold;">不可退回</button>
+            </div>
+        </div>`;
+
+        // 將時光機裡的歷史紀錄「從最新到最舊」倒序排列顯示
+        for (let i = pointHistory.length - 1; i >= 0; i--) {
+            let state = pointHistory[i];
+            
+            html += `
+            <div class="point-log-item">
+                <div style="color:#7f8c8d; font-size:0.9em; font-weight:bold;">前 ${pointHistory.length - i} 步</div>
+                <div class="point-log-score">🔴 ${state.scoreA} - ${state.scoreB} 🔵</div>
+                <div>
+                    <button class="btn-revert" onclick="revertToPoint(${i})">🔙 退回</button>
+                </div>
+            </div>`;
+        }
+        
+        list.innerHTML = html;
+    }
+
+    // 🆕 執行時空跳躍！退回到指定的歷史節點
+    function revertToPoint(index) {
+        let targetState = pointHistory[index];
+        if (confirm(`確定要將比賽退回到 【 🔴 ${targetState.scoreA} - ${targetState.scoreB} 🔵 】 嗎？\n\n⚠️ 警告：退回後，此時間點之後的所有計分都將被清除！`)) {
+            
+            // 1. 將比賽狀態直接替換為當時保存的狀態
+            matchState = targetState;
+            matchState.isGameOver = false;
+            
+            // 2. 截斷時光機陣列，丟掉那個時間點之後的「未來」記憶
+            pointHistory = pointHistory.slice(0, index);
+            
+            // 3. 關閉彈跳視窗並更新畫面
+            closePointHistory();
+            document.getElementById('winner-overlay').style.display = 'none';
+            document.getElementById('winner-sub').innerText = "比賽結束";
+            
+            updateCourtVisuals();
+        }
     }
 
     function openScoreboard(dataEnc) {
