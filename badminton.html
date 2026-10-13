@@ -69,7 +69,7 @@
         .winner-text { color: #2ecc71; font-weight: bold; }
         .score-text { background: #ecf0f1; padding: 2px 8px; border-radius: 10px; font-weight: bold; color: #2c3e50; margin: 0 5px;}
 
-        /* 🆕 記分歷程 (時光機列表) 的專屬 CSS */
+        /* 記分歷程專屬 CSS */
         .point-log-item { background: #fff; border: 1px solid #eee; padding: 12px; margin-bottom: 8px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
         .point-log-score { font-size: 1.3em; font-weight: bold; }
         .btn-revert { background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.9em; font-weight:bold; }
@@ -181,7 +181,7 @@
         </div>
         <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:10px;">
             <button class="btn-warning" onclick="resetHistoryOnly()" style="margin-top:0; flex:1;">♻ 重置搭檔</button>
-            <button class="btn-danger" onclick="fullResetKeepNames()" style="margin-top:0; flex:1;">🗑 結束今日比賽 (全部重置)</button>
+            <button class="btn-danger" onclick="fullResetKeepNames()" style="margin-top:0; flex:1;">🗑 全部重置</button>
         </div>
     </div>
 
@@ -236,7 +236,7 @@
     </div>
 </div>
 
-<!-- 🆕 🕒 記分歷程 (時光機列表) Modal -->
+<!-- 🕒 記分歷程 (時光機列表) Modal -->
 <div id="point-history-modal" class="modal-overlay" style="z-index: 1060;">
     <div class="history-box" style="max-height: 75vh;">
         <div class="history-header">
@@ -261,7 +261,7 @@
         </div>
         <div style="margin-top:10px;">
             <button style="background:none; border:none; color:#f1c40f; font-size:1.1em; cursor:pointer; margin-bottom:15px; font-weight:bold;" onclick="undoWinningPoint()">🔙 哎呀按錯了 (退回一分)</button><br>
-            <button style="background:none; border:none; color:#bdc3c7; cursor:pointer;" onclick="closeScoreboard()">不儲存直接關閉</button>
+            <button style="background:none; border:none; color:#bdc3c7; cursor:pointer;" onclick="closeScoreboard()">直接關閉</button>
         </div>
     </div>
 
@@ -269,7 +269,6 @@
         <span onclick="closeScoreboard()" style="cursor:pointer; font-weight:bold;">❮ 返回</span>
         <span>🏸 現場記分</span>
         <div style="display:flex; gap:8px;">
-            <!-- 🆕 新增：記分歷程按鈕 -->
             <button onclick="openPointHistory()" style="background:#8e44ad; color:white; border:none; border-radius:4px; padding:5px 8px; font-size:0.85em; cursor:pointer; font-weight:bold;">🕒 歷程</button>
             <button onclick="toggleCourtSwap()" style="background:#2980b9; color:white; border:none; border-radius:4px; padding:5px 8px; font-size:0.85em; cursor:pointer; font-weight:bold;">🔁 換邊</button>
             <button onclick="resetScore()" style="background:#e74c3c; width:auto; padding:5px 8px; font-size:0.85em; margin:0; border:none; border-radius:4px; color:white; font-weight:bold; cursor:pointer;">歸零</button>
@@ -462,12 +461,21 @@
         roundCount++;
         const numActive = actualMatches * perGroup; const numByes = players.length - numActive;
         let bestResult = null;
+        
+        // 🆕 智慧震盪機制
         for (let i = 0; i < 500; i++) {
-            let currentPlayers = [...players].sort((a,b) => calculateScore(b) - calculateScore(a) + (Math.random()*10-5));
+            let noise = 5;
+            if (i > 100) noise = 60;  
+            if (i > 200) noise = 150; 
+            if (i > 300) noise = 500; 
+            
+            let currentPlayers = [...players].sort((a,b) => calculateScore(b) - calculateScore(a) + (Math.random() * noise * 2 - noise));
+            
             let cByes = currentPlayers.slice(0, numByes); let cActive = currentPlayers.slice(numByes);
             let groups = tryToPair(cActive, mode, perGroup);
             if (groups) { bestResult = { groups, byes: cByes }; break; }
         }
+        
         if (!bestResult) {
             let shuffled = shuffle([...players]);
             let mustPlay = shuffled.filter(p => (consecutiveRestCounts[p]||0)>=2);
@@ -560,7 +568,6 @@
         div.innerHTML = html;
     }
 
-    // 🆕 記分歷程 (時光機列表) 的開啟與關閉
     function openPointHistory() {
         renderPointHistory();
         document.getElementById('point-history-modal').style.display = 'flex';
@@ -570,7 +577,6 @@
         document.getElementById('point-history-modal').style.display = 'none';
     }
 
-    // 🆕 算繪記分歷程列表
     function renderPointHistory() {
         const list = document.getElementById('point-history-list');
         
@@ -580,8 +586,6 @@
         }
 
         let html = '';
-        
-        // 渲染「現在最新的狀態」在最上面
         html += `
         <div class="point-log-item" style="background:#e8f8f5; border-color:#2ecc71;">
             <div>
@@ -593,10 +597,8 @@
             </div>
         </div>`;
 
-        // 將時光機裡的歷史紀錄「從最新到最舊」倒序排列顯示
         for (let i = pointHistory.length - 1; i >= 0; i--) {
             let state = pointHistory[i];
-            
             html += `
             <div class="point-log-item">
                 <div style="color:#7f8c8d; font-size:0.9em; font-weight:bold;">前 ${pointHistory.length - i} 步</div>
@@ -606,27 +608,18 @@
                 </div>
             </div>`;
         }
-        
         list.innerHTML = html;
     }
 
-    // 🆕 執行時空跳躍！退回到指定的歷史節點
     function revertToPoint(index) {
         let targetState = pointHistory[index];
         if (confirm(`確定要將比賽退回到 【 🔴 ${targetState.scoreA} - ${targetState.scoreB} 🔵 】 嗎？\n\n⚠️ 警告：退回後，此時間點之後的所有計分都將被清除！`)) {
-            
-            // 1. 將比賽狀態直接替換為當時保存的狀態
             matchState = targetState;
             matchState.isGameOver = false;
-            
-            // 2. 截斷時光機陣列，丟掉那個時間點之後的「未來」記憶
             pointHistory = pointHistory.slice(0, index);
-            
-            // 3. 關閉彈跳視窗並更新畫面
             closePointHistory();
             document.getElementById('winner-overlay').style.display = 'none';
             document.getElementById('winner-sub').innerText = "比賽結束";
-            
             updateCourtVisuals();
         }
     }
