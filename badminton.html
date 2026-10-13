@@ -146,7 +146,6 @@
     <div class="section" id="control-section" style="display:none;">
         <div class="control-row">
             <label style="margin:0;">模式：</label>
-            <!-- 🆕 新增 onChange 觸發分隔線 -->
             <div class="radio-group">
                 <label class="radio-label"><input type="radio" name="mode" value="2" checked onchange="addHistorySeparator('切換為雙打模式')"> 雙打</label>
                 <label class="radio-label"><input type="radio" name="mode" value="1" onchange="addHistorySeparator('切換為單打模式')"> 單打</label>
@@ -154,7 +153,6 @@
         </div>
         <div class="control-row">
             <label style="margin:0;">可用場地數：</label>
-            <!-- 🆕 新增 onChange 觸發分隔線 -->
             <select id="court-count" onchange="addHistorySeparator('變更場地數量')">
                 <option value="1">1 個場</option>
                 <option value="2">2 個場</option>
@@ -178,7 +176,7 @@
         </div>
         <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:10px;">
             <button class="btn-warning" onclick="resetHistoryOnly()" style="margin-top:0; flex:1;">♻ 重置搭檔</button>
-            <button class="btn-danger" onclick="fullResetKeepNames()" style="margin-top:0; flex:1;">🗑️️ 全部重置</button>
+            <button class="btn-danger" onclick="fullResetKeepNames()" style="margin-top:0; flex:1;">🗑 結束今日比賽 (全部重置)</button>
         </div>
     </div>
 
@@ -333,6 +331,8 @@
     let consecutiveCounts = {}; let consecutiveRestCounts = {}; let totalGames = {};
     let totalWins = {}; let matchHistory = [];
     let historyDoubles = new Set(); let historySingles = new Set(); let roundCount = 0;
+    
+    let historyCourtGroups = new Set(); 
     let matchState = { scoreA: 0, scoreB: 0, serverTeam: 'A', teamA: ['', ''], teamB: ['', ''], isGameOver: false, court: 0, mode: '2' };
     let pointHistory = []; 
     let currentHistoryTab = 'all'; 
@@ -344,6 +344,8 @@
         consecutiveCounts = {}; consecutiveRestCounts = {}; totalGames = {}; totalWins = {}; matchHistory = [];
         players.forEach(p => { consecutiveCounts[p] = 0; consecutiveRestCounts[p] = 0; totalGames[p] = 0; totalWins[p] = 0; });
         historyDoubles.clear(); historySingles.clear(); roundCount = 0;
+        historyCourtGroups.clear(); 
+        
         document.getElementById('setup-section').style.display = 'none';
         document.getElementById('control-section').style.display = 'block';
         document.getElementById('result-section').style.display = 'block';
@@ -351,11 +353,8 @@
         document.getElementById('result-container').innerHTML = '<p style="text-align:center; color:#bdc3c7;">準備就緒</p>';
     }
     
-    // 🆕 處理分隔線的獨立函數
     function addHistorySeparator(reason) {
-        if (matchHistory.length === 0) return; // 沒打過比賽不需要加分隔線
-        
-        // 如果第一筆已經是分隔線，就把原因合併，避免連續刷一整排分隔線
+        if (matchHistory.length === 0) return; 
         if (matchHistory[0].isSeparator) {
             if (!matchHistory[0].message.includes(reason)) {
                 matchHistory[0].message += '、' + reason;
@@ -365,11 +364,7 @@
             }
             return;
         }
-        
-        // 將分隔線作為特殊的物件存進歷史紀錄
         matchHistory.unshift({ isSeparator: true, message: reason });
-        
-        // 如果歷史視窗開著就即時更新
         if (document.getElementById('history-modal').style.display === 'flex') {
             renderHistory(currentHistoryTab);
         }
@@ -378,15 +373,18 @@
     function resetHistoryOnly() { 
         if(confirm("清除搭檔紀錄？")) { 
             historyDoubles.clear(); historySingles.clear(); 
-            addHistorySeparator('重置搭檔記憶'); // 觸發分隔線
+            historyCourtGroups.clear(); 
+            addHistorySeparator('重置搭檔記憶'); 
             alert("已重置"); 
         } 
     }
     
     function fullResetKeepNames() {
-        if(!confirm("確定要全部重置嗎？\n(所有戰績將被清空，但保留名字)")) return;
+        if(!confirm("確定要結束今日比賽並全部重置嗎？\n(所有戰績與紀錄將被清空，但保留名單)")) return;
         consecutiveCounts = {}; consecutiveRestCounts = {}; totalGames = {}; totalWins = {}; matchHistory = [];
         historyDoubles.clear(); historySingles.clear(); roundCount = 0;
+        historyCourtGroups.clear(); 
+        
         if(players.length > 0) { document.getElementById('input-names').value = players.join('\n'); }
         document.getElementById('control-section').style.display = 'none';
         document.getElementById('setup-section').style.display = 'block';
@@ -399,8 +397,40 @@
     function shuffle(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; } return array; }
     function getPairKey(p1, p2) { return [p1, p2].sort().join('|'); }
     function calculateScore(p) { let s = (totalGames[p]||0)*100 + (consecutiveCounts[p]||0)*50; if((consecutiveCounts[p]||0)>=2) s += 5000; if((consecutiveRestCounts[p]||0)>=2) s -= 10000; return s; }
-    function tryToPair(list, mode, pg) { for(let i=0; i<50; i++){ shuffle(list); let gs=[], ok=true; for(let k=0; k<list.length; k+=pg){ let g = list.slice(k, k+pg); if(mode==="1" && historySingles.has(getPairKey(g[0],g[1]))) { ok=false; break; } if(mode==="2" && (historyDoubles.has(getPairKey(g[0],g[1])) || historyDoubles.has(getPairKey(g[2],g[3])))) { ok=false; break; } gs.push(g); } if(ok) return gs; } return null; }
-    function updateData(groups, byes, mode) { groups.flat().forEach(p => { consecutiveCounts[p]=(consecutiveCounts[p]||0)+1; consecutiveRestCounts[p]=0; totalGames[p]=(totalGames[p]||0)+1; }); byes.forEach(p => { consecutiveCounts[p]=0; consecutiveRestCounts[p]=(consecutiveRestCounts[p]||0)+1; }); groups.forEach(g => { if(mode==="1") historySingles.add(getPairKey(g[0],g[1])); else { historyDoubles.add(getPairKey(g[0],g[1])); historyDoubles.add(getPairKey(g[2],g[3])); } }); updateStatsTable(); }
+    
+    function tryToPair(list, mode, pg) { 
+        for(let i=0; i<50; i++){ 
+            shuffle(list); let gs=[], ok=true; 
+            for(let k=0; k<list.length; k+=pg){ 
+                let g = list.slice(k, k+pg); 
+                if(mode==="1" && historySingles.has(getPairKey(g[0],g[1]))) { ok=false; break; } 
+                
+                if(mode==="2") {
+                    if (historyDoubles.has(getPairKey(g[0],g[1])) || historyDoubles.has(getPairKey(g[2],g[3]))) { ok=false; break; } 
+                    if (players.length > 4 && historyCourtGroups.has([...g].sort().join('|'))) { ok=false; break; }
+                }
+                gs.push(g); 
+            } 
+            if(ok) return gs; 
+        } 
+        return null; 
+    }
+    
+    function updateData(groups, byes, mode) { 
+        groups.flat().forEach(p => { consecutiveCounts[p]=(consecutiveCounts[p]||0)+1; consecutiveRestCounts[p]=0; totalGames[p]=(totalGames[p]||0)+1; }); 
+        byes.forEach(p => { consecutiveCounts[p]=0; consecutiveRestCounts[p]=(consecutiveRestCounts[p]||0)+1; }); 
+        
+        groups.forEach(g => { 
+            if(mode==="1") {
+                historySingles.add(getPairKey(g[0],g[1])); 
+            } else { 
+                historyDoubles.add(getPairKey(g[0],g[1])); 
+                historyDoubles.add(getPairKey(g[2],g[3])); 
+                historyCourtGroups.add([...g].sort().join('|')); 
+            } 
+        }); 
+        updateStatsTable(); 
+    }
     
     function generateRound() {
         const mode = document.querySelector('input[name="mode"]:checked').value;
@@ -441,7 +471,7 @@
             html += `<div class="match-card">
                 <div style="text-align:center;"><span class="court-badge">場地 ${i+1}</span></div>
                 <div style="flex:1; padding:0 10px;">
-                    <span style="color:#e74c3c; font-weight:bold;">${tA.join('&')}</span> <span class="vs-badge">VS</span> <span style="color:#3498db; font-weight:bold;">${tB.join('&')}</span>
+                    <span style="color:#e74c3c; font-weight:bold;">${tA.filter(p=>p!=="").join(' & ')}</span> <span class="vs-badge">VS</span> <span style="color:#3498db; font-weight:bold;">${tB.filter(p=>p!=="").join(' & ')}</span>
                 </div>
                 <div><button class="btn-score" onclick="openScoreboard('${safeData}')">📝 記分</button></div>
             </div>`;
@@ -473,7 +503,6 @@
         
         const div = document.getElementById('history-list');
         
-        // 🆕 過濾邏輯：如果是分隔線(isSeparator)，只在 'all' 顯示
         let filteredHistory = matchHistory.filter(m => {
             if (m.isSeparator) return filter === 'all';
             return filter === 'all' || m.mode === filter;
@@ -486,7 +515,6 @@
         
         let html = '';
         filteredHistory.forEach(m => {
-            // 🆕 算繪分隔線的特殊 HTML
             if (m.isSeparator) {
                 html += `
                 <div style="display:flex; align-items:center; margin: 15px 0; color:#95a5a6;">
@@ -494,12 +522,15 @@
                     <span style="padding:0 10px; font-size:0.85em;">⚙️ ${m.message}</span>
                     <div style="flex:1; height:1px; background:#bdc3c7;"></div>
                 </div>`;
-                return; // 跳過畫比賽卡片
+                return; 
             }
 
-            // 一般比賽紀錄渲染
-            let winNames = m.winner === 'A' ? m.teamA.join('&') : m.teamB.join('&');
-            let loseNames = m.winner === 'A' ? m.teamB.join('&') : m.teamA.join('&');
+            let winTeam = m.winner === 'A' ? m.teamA : m.teamB;
+            let loseTeam = m.winner === 'A' ? m.teamB : m.teamA;
+            
+            let winNames = winTeam.filter(p => p !== "").join(' & ');
+            let loseNames = loseTeam.filter(p => p !== "").join(' & ');
+
             let scoreStr = m.winner === 'A' ? `${m.scoreA} - ${m.scoreB}` : `${m.scoreB} - ${m.scoreA}`;
             let courtHtml = m.court ? `<span class="history-court-badge">場地 ${m.court}</span>` : '';
             let modeHtml = `<span class="history-mode-badge">${m.mode === '1' ? '單打' : '雙打'}</span>`;
