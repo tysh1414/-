@@ -135,8 +135,8 @@
         <h2 style="text-align:center; color:#34495e; font-size:1.3em; margin-bottom: 25px;">告訴你要玩什麼模式ㄅ 👇</h2>
         <div style="display:flex; flex-direction:column;">
             <button class="btn-primary mode-btn" style="background:#27ae60;" onclick="selectMode('1')">🤺 單打大亂鬥</button>
-            <button class="btn-primary mode-btn" style="background:#3498db;" onclick="selectMode('2')">👯 雙打 (系統隨機換搭檔)</button>
-            <button class="btn-primary mode-btn" style="background:#8e44ad;" onclick="selectMode('fixed')">🤝 雙打 (自訂固定組員)</button>
+            <button class="btn-primary mode-btn" style="background:#3498db;" onclick="selectMode('2')">👯 隨機雙打</button>
+            <button class="btn-primary mode-btn" style="background:#8e44ad;" onclick="selectMode('fixed')">🤝 固定雙打</button>
         </div>
     </div>
 
@@ -149,7 +149,10 @@
         <!-- (A) 單打 / 隨機雙打的文字輸入框 -->
         <div id="setup-textarea-box">
             <label id="input-label" style="color:#2c3e50; font-size:1.1em;">輸入玩家名單 (請用 空白 或 換行 隔開):</label>
-            <textarea id="input-names" placeholder="例如：\n小明\n小華\n小美\n大衛"></textarea>
+            <textarea id="input-names" placeholder="例如：小明
+                小華
+                小美
+                大衛"></textarea>
         </div>
 
         <!-- (B) 固定隊伍的專屬雙欄位 UI -->
