@@ -989,7 +989,7 @@
 
     function updateCourtVisuals() {
         document.getElementById('disp-score-a').innerText = matchState.scoreA; document.getElementById('disp-score-b').innerText = matchState.scoreB;
-        let target = parseInt(document.getElementById('target-score').value) || 21;
+        let target = parseInt(document.getElementById('target-score').value) || 15;
         let isDeuce = (matchState.scoreA >= target-1 && matchState.scoreB >= target-1);
         let diff = Math.abs(matchState.scoreA - matchState.scoreB);
         let winner = null;
