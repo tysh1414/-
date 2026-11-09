@@ -151,7 +151,6 @@
 大衛"></textarea>
         </div>
 
-        <!-- 🆕 修正：固定隊伍手機直向排版 -->
         <div id="setup-fixed-box" style="display:none;">
             <label style="color:#2c3e50; font-size:1.1em; margin-bottom:10px; display:block;">新增固定隊伍：</label>
             <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:15px;">
@@ -169,6 +168,13 @@
     </div>
 
     <div class="section" id="control-section" style="display:none;">
+        
+        <!-- 🆕 移至左上角的結束比賽按鈕 -->
+        <div style="display:flex; justify-content:flex-start; margin-bottom: 20px;">
+            <button onclick="fullResetKeepNames()" style="background:transparent; color:#e74c3c; border:1px solid #e74c3c; padding:6px 12px; border-radius:6px; font-size:0.9em; font-weight:bold; cursor:pointer; width:auto; margin:0;">
+                ❮ 結束比賽 (全部重置)
+            </button>
+        </div>
         
         <div class="control-row" id="mode-selector-row" style="display:none;">
             <div class="radio-group">
@@ -195,7 +201,6 @@
         <div style="margin-top: 20px;">
             <label>📊 狀態看板 (❄️=連休 🔥=連打 🏆=勝場)</label>
             <table class="stats-table">
-                <!-- 🆕 乾淨的表格標題：無論任何模式都只顯示 名字 -->
                 <thead><tr><th>名字</th><th>狀態</th><th>場次</th><th>勝場</th></tr></thead>
                 <tbody id="stats-body"></tbody>
             </table>
@@ -206,7 +211,6 @@
         </div>
         <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:10px;">
             <button class="btn-warning" onclick="resetHistoryOnly()" style="margin-top:0; flex:1;">♻ 重置搭檔記憶</button>
-            <button class="btn-danger" onclick="fullResetKeepNames()" style="margin-top:0; flex:1;">🗑 結束比賽</button>
         </div>
     </div>
 
@@ -225,19 +229,19 @@
         <div style="display:flex; justify-content:space-between; margin-bottom:15px; background:#f8f9fa; padding:15px; border-radius:8px;">
             <div style="flex:1; padding-right:10px;">
                 <div style="color:#e74c3c; font-weight:bold; margin-bottom:5px;">🔴 紅隊</div>
-                <="text" id="man-a1" placeholder="球員 1" style="width:100%; margin-bottom:5px; padding:8px; box-sizing:border-box; border-radius:4px; border:1px solid #ccc;">
-                <="text" id="man-a2" placeholder="球員 2 (單打留空)" style="width:100%; padding:8px; box-sizing:border-box; border-radius:4px; border:1px solid #ccc;">
+                <input type="text" id="man-a1" placeholder="球員 1" style="width:100%; margin-bottom:5px; padding:8px; box-sizing:border-box; border-radius:4px; border:1px solid #ccc;">
+                <input type="text" id="man-a2" placeholder="球員 2 (單打留空)" style="width:100%; padding:8px; box-sizing:border-box; border-radius:4px; border:1px solid #ccc;">
             </div>
             <div style="display:flex; align-items:center; font-weight:bold; color:#7f8c8d;">VS</div>
             <div style="flex:1; padding-left:10px;">
                 <div style="color:#3498db; font-weight:bold; margin-bottom:5px;">🔵 藍隊</div>
-                <="text" id="man-b1" placeholder="球員 3" style="width:100%; margin-bottom:5px; padding:8px; box-sizing:border-box; border-radius:4px; border:1px solid #ccc;">
-                <="text" id="man-b2" placeholder="球員 4 (單打留空)" style="width:100%; padding:8px; box-sizing:border-box; border-radius:4px; border:1px solid #ccc;">
+                <input type="text" id="man-b1" placeholder="球員 3" style="width:100%; margin-bottom:5px; padding:8px; box-sizing:border-box; border-radius:4px; border:1px solid #ccc;">
+                <input type="text" id="man-b2" placeholder="球員 4 (單打留空)" style="width:100%; padding:8px; box-sizing:border-box; border-radius:4px; border:1px solid #ccc;">
             </div>
         </div>
         <div style="margin-bottom:15px; text-align:left;">
             <label>分配場地編號：</label>
-            <="number" id="man-court" value="1" min="1" style="width:100%; padding:8px; box-sizing:border-box; border-radius:6px; border:1px solid #ccc;">
+            <input type="number" id="man-court" value="1" min="1" style="width:100%; padding:8px; box-sizing:border-box; border-radius:6px; border:1px solid #ccc;">
         </div>
         <div style="display:flex; gap:10px;">
             <button onclick="confirmManualMatch()" style="background:#27ae60; color:white; flex:1;">確認新增到賽程</button>
@@ -272,12 +276,12 @@
         <div style="display:flex; justify-content:space-around; align-items:center; margin:20px 0;">
             <div style="text-align:center;">
                 <div style="color:#ff6b6b; font-weight:bold; margin-bottom:8px;">🔴 紅隊</div>
-                <="number" id="edit-score-a" style="width:70px; font-size:2em; text-align:center; border:2px solid #ff6b6b; border-radius:8px; padding:5px;" min="0">
+                <input type="number" id="edit-score-a" style="width:70px; font-size:2em; text-align:center; border:2px solid #ff6b6b; border-radius:8px; padding:5px;" min="0">
             </div>
             <div style="font-size:2em; color:#bdc3c7; font-weight:bold;">:</div>
             <div style="text-align:center;">
                 <div style="color:#4ecdc4; font-weight:bold; margin-bottom:8px;">🔵 藍隊</div>
-                <="number" id="edit-score-b" style="width:70px; font-size:2em; text-align:center; border:2px solid #4ecdc4; border-radius:8px; padding:5px;" min="0">
+                <input type="number" id="edit-score-b" style="width:70px; font-size:2em; text-align:center; border:2px solid #4ecdc4; border-radius:8px; padding:5px;" min="0">
             </div>
         </div>
         <div style="display:flex; gap:10px;">
@@ -315,9 +319,12 @@
         </div>
     </div>
 
+    <!-- 🆕 移至記分板左上角的結算按鈕 -->
     <div class="sb-header">
-        <span onclick="closeScoreboard()" style="cursor:pointer; font-weight:bold;">❮ 返回</span>
-        <span>🏸 現場記分</span>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <span onclick="closeScoreboard()" style="cursor:pointer; font-weight:bold; padding: 5px 0;">❮ 返回</span>
+            <button onclick="forceEndMatch()" style="background:transparent; color:#ff6b6b; border:1px solid #ff6b6b; border-radius:4px; padding:3px 6px; font-size:0.8em; cursor:pointer; font-weight:bold;">🏁 結算</button>
+        </div>
         <div style="display:flex; gap:8px;">
             <button onclick="openPointHistory()" style="background:#8e44ad; color:white; border:none; border-radius:4px; padding:5px 8px; font-size:0.85em; cursor:pointer; font-weight:bold;">🕒 歷程</button>
             <button onclick="toggleCourtSwap()" style="background:#2980b9; color:white; border:none; border-radius:4px; padding:5px 8px; font-size:0.85em; cursor:pointer; font-weight:bold;">🔁 換邊</button>
@@ -390,7 +397,6 @@
                 <button class="mini-btn" onclick="addPoint('B', -1)">-1</button>
             </div>
         </div>
-        <button onclick="forceEndMatch()" style="background:transparent; color:#bdc3c7; border:1px solid #7f8c8d; padding:8px 15px; border-radius:8px; margin-top:5px; max-width: 200px; font-size:0.9em;">🏁 提前結束並結算</button>
     </div>
 </div>
 
@@ -467,14 +473,13 @@
     }
 
     function initSystem() {
-        let uniquePlayers = new Set();
+        let uniquePlayers = new Set(); 
 
         if (systemMode === 'fixed') {
             if (fixedTeamsList.length < 2) { alert("至少需要新增 2 支隊伍才能比賽！"); return; }
             players = fixedTeamsList.map(t => t[0] + '&' + t[1]);
             document.querySelector('input[name="mode"][value="2"]').checked = true; 
             
-            // 獨立提取每個人的名字，為了狀態看板使用
             players.forEach(team => team.split('&').forEach(p => { if(p) uniquePlayers.add(p); }));
         } else {
             let rawInput = document.getElementById('input-names').value;
@@ -514,7 +519,6 @@
         let tB = [b1]; if (b2) tB.push(b2);
         let sMode = (tA.length === 1 && tB.length === 1) ? "1" : "2"; 
         
-        // 個人戰績同步更新
         tA.forEach(p => { totalGames[p] = (totalGames[p]||0) + 1; });
         tB.forEach(p => { totalGames[p] = (totalGames[p]||0) + 1; });
         updateStatsTable();
@@ -871,6 +875,10 @@
         pointHistory = []; 
         document.getElementById('score-modal').classList.remove('court-swapped');
         document.getElementById('winner-overlay').style.display = 'none'; document.getElementById('score-modal').style.display = 'flex';
+        
+        let targetScoreInput = document.getElementById('target-score');
+        if (!targetScoreInput.value) targetScoreInput.value = "15"; 
+        
         updateCourtVisuals();
     }
     
@@ -1059,7 +1067,6 @@
         let winnerSide = (matchState.scoreA > matchState.scoreB) ? 'A' : 'B';
         let winningPlayers = (winnerSide === 'A') ? matchState.teamA : matchState.teamB;
         
-        // 🆕 無論單打、隨機雙打還是固定隊伍，戰績全都算給個人！
         winningPlayers.forEach(p => { if(p && p !== "") totalWins[p] = (totalWins[p] || 0) + 1; });
         
         matchHistory.unshift({ 
