@@ -23,11 +23,9 @@
         .btn-info { background-color: #17a2b8; color: white; }
         .btn-score { background-color: #8e44ad; color: white; width: auto; padding: 8px 15px; font-size: 0.9em; }
 
-        /* 🆕 模式選擇大按鈕 */
         .mode-btn { height: 60px; font-size: 1.2em; display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 15px; }
         .mode-btn:hover { filter: brightness(1.1); transform: translateY(-2px); }
 
-        /* 🆕 固定隊伍清單樣式 */
         .fixed-team-item { display: flex; justify-content: space-between; align-items: center; background: white; border: 1px solid #ddd; padding: 10px 15px; margin-bottom: 8px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
         .btn-remove-team { background: #e74c3c; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 0.9em; cursor: pointer; width: auto; margin: 0; }
 
@@ -130,52 +128,48 @@
 <div class="container" id="app-screen">
     <h1>聽我的就對了🫅</h1>
 
-    <!-- 🆕 步驟一：選擇大模式 (初始畫面) -->
     <div class="section" id="landing-section">
         <h2 style="text-align:center; color:#34495e; font-size:1.3em; margin-bottom: 25px;">告訴你要玩什麼模式ㄅ 👇</h2>
         <div style="display:flex; flex-direction:column;">
             <button class="btn-primary mode-btn" style="background:#27ae60;" onclick="selectMode('1')">🤺 單打大亂鬥</button>
-            <button class="btn-primary mode-btn" style="background:#3498db;" onclick="selectMode('2')">👯 隨機雙打</button>
-            <button class="btn-primary mode-btn" style="background:#8e44ad;" onclick="selectMode('fixed')">🤝 固定雙打</button>
+            <button class="btn-primary mode-btn" style="background:#3498db;" onclick="selectMode('2')">👯 隨機搭檔雙打</button>
+            <button class="btn-primary mode-btn" style="background:#8e44ad;" onclick="selectMode('fixed')">🤝 固定閨閨雙打</button>
         </div>
     </div>
 
-    <!-- 🆕 步驟二：輸入名單設定 (按模式動態切換介面) -->
     <div class="section" id="setup-section" style="display:none;">
         <button style="background:none; color:#7f8c8d; border:none; text-align:left; cursor:pointer; font-weight:bold; margin-bottom:15px; padding:0; display:flex; align-items:center; gap:5px;" onclick="goBackToLanding()">
             ❮ 重新選擇模式
         </button>
 
-        <!-- (A) 單打 / 隨機雙打的文字輸入框 -->
         <div id="setup-textarea-box">
             <label id="input-label" style="color:#2c3e50; font-size:1.1em;">輸入玩家名單 (請用 空白 或 換行 隔開):</label>
-            <textarea id="input-names" placeholder="例如：小明
-                小華
-                小美
-                大衛"></textarea>
+            <textarea id="input-names" placeholder="例如：
+小明
+小華
+小美
+大衛"></textarea>
         </div>
 
-        <!-- (B) 固定隊伍的專屬雙欄位 UI -->
+        <!-- 🆕 修正：固定隊伍手機直向排版 -->
         <div id="setup-fixed-box" style="display:none;">
-            <label style="color:#2c3e50; font-size:1.1em;">新增固定隊伍：</label>
-            <div style="display:flex; gap:10px; margin-bottom:15px;">
-                <input type="text" id="fixed-p1" placeholder="填寫球員 1" style="flex:1; padding:12px; border-radius:6px; border:1px solid #ccc; font-size:1em;">
-                <input type="text" id="fixed-p2" placeholder="填寫球員 2" style="flex:1; padding:12px; border-radius:6px; border:1px solid #ccc; font-size:1em;">
-                <button onclick="addFixedTeam()" style="width:auto; padding:0 20px; margin:0; background:#f39c12; color:white; font-size:1em;">＋ 新增</button>
+            <label style="color:#2c3e50; font-size:1.1em; margin-bottom:10px; display:block;">新增固定隊伍：</label>
+            <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:15px;">
+                <input type="text" id="fixed-p1" placeholder="填寫球員 1" style="width:100%; padding:12px; border-radius:6px; border:1px solid #ccc; font-size:1em; box-sizing:border-box;">
+                <input type="text" id="fixed-p2" placeholder="填寫球員 2" style="width:100%; padding:12px; border-radius:6px; border:1px solid #ccc; font-size:1em; box-sizing:border-box;">
+                <button onclick="addFixedTeam()" style="width:100%; padding:12px; margin:0; background:#f39c12; color:white; font-size:1em; border:none; border-radius:8px; font-weight:bold;">＋ 新增這組隊伍</button>
             </div>
-            <label style="color:#7f8c8d; font-size:0.9em; margin-bottom:5px;">目前已組建的隊伍清單：</label>
-            <div id="fixed-teams-list" style="background:#ecf0f1; padding:15px; border-radius:8px; min-height:100px; margin-bottom:15px; border: 1px solid #ddd;">
-                <p style="text-align:center; color:#95a5a6; margin:0; margin-top:35px;">尚未新增隊伍</p>
+            <label style="color:#7f8c8d; font-size:0.9em; margin-bottom:5px; display:block;">目前已組建的隊伍清單：</label>
+            <div id="fixed-teams-list" style="background:#ecf0f1; padding:15px; border-radius:8px; min-height:80px; margin-bottom:15px; border: 1px solid #ddd;">
+                <p style="text-align:center; color:#95a5a6; margin:0; margin-top:20px;">尚未新增隊伍</p>
             </div>
         </div>
 
         <button class="btn-success" style="font-size:1.1em; height:50px; margin-top:10px;" onclick="initSystem()">確認名單，開始建立賽程表 🚀</button>
     </div>
 
-    <!-- 步驟三：賽程控制主面板 -->
     <div class="section" id="control-section" style="display:none;">
         
-        <!-- 隱藏原本的單雙打選項，改由後台自動控制 -->
         <div class="control-row" id="mode-selector-row" style="display:none;">
             <div class="radio-group">
                 <label><input type="radio" name="mode" value="2" checked> 雙打</label>
@@ -201,7 +195,8 @@
         <div style="margin-top: 20px;">
             <label>📊 狀態看板 (❄️=連休 🔥=連打 🏆=勝場)</label>
             <table class="stats-table">
-                <thead><tr><th>名字 / 隊伍</th><th>狀態</th><th>場次</th><th>勝場</th></tr></thead>
+                <!-- 🆕 乾淨的表格標題：無論任何模式都只顯示 名字 -->
+                <thead><tr><th>名字</th><th>狀態</th><th>場次</th><th>勝場</th></tr></thead>
                 <tbody id="stats-body"></tbody>
             </table>
         </div>
@@ -410,10 +405,9 @@
     let matchState = { scoreA: 0, scoreB: 0, serverTeam: 'A', teamA: ['', ''], teamB: ['', ''], isGameOver: false, court: 0, mode: '2' };
     let pointHistory = []; 
     let currentHistoryTab = 'all'; 
-    let systemMode = '2'; // 1=單打, 2=雙打隨機, fixed=雙打固定
-    let fixedTeamsList = []; // 儲存固定隊伍清單
+    let systemMode = '2'; 
+    let fixedTeamsList = []; 
 
-    // 🆕 選擇模式並切換畫面
     function selectMode(mode) {
         systemMode = mode;
         document.getElementById('landing-section').style.display = 'none';
@@ -425,18 +419,15 @@
         } else {
             document.getElementById('setup-textarea-box').style.display = 'block';
             document.getElementById('setup-fixed-box').style.display = 'none';
-            // 修改文字框提示
             document.getElementById('input-label').innerText = mode === '1' ? "輸入單打玩家名單 (請用 空白 或 換行 隔開):" : "輸入雙打玩家名單 (請用 空白 或 換行 隔開):";
         }
     }
 
-    // 🆕 回到首頁重新選擇
     function goBackToLanding() {
         document.getElementById('setup-section').style.display = 'none';
         document.getElementById('landing-section').style.display = 'block';
     }
 
-    // 🆕 新增固定隊伍到清單
     function addFixedTeam() {
         let p1 = document.getElementById('fixed-p1').value.trim();
         let p2 = document.getElementById('fixed-p2').value.trim();
@@ -452,17 +443,15 @@
         renderFixedTeamsList();
     }
 
-    // 🆕 移除固定隊伍
     function removeFixedTeam(index) {
         fixedTeamsList.splice(index, 1);
         renderFixedTeamsList();
     }
 
-    // 🆕 顯示已新增的隊伍
     function renderFixedTeamsList() {
         const container = document.getElementById('fixed-teams-list');
         if (fixedTeamsList.length === 0) {
-            container.innerHTML = '<p style="text-align:center; color:#95a5a6; margin:0; margin-top:35px;">尚未新增隊伍</p>';
+            container.innerHTML = '<p style="text-align:center; color:#95a5a6; margin:0; margin-top:20px;">尚未新增隊伍</p>';
             return;
         }
         
@@ -470,7 +459,7 @@
         fixedTeamsList.forEach((team, i) => {
             html += `
             <div class="fixed-team-item">
-                <span style="font-weight:bold; color:#2c3e50;">🤝 隊伍 ${i+1}：${team[0]} & ${team[1]}</span>
+                <span style="font-weight:bold; color:#2c3e50;">🤝 ${team[0]} & ${team[1]}</span>
                 <button class="btn-remove-team" onclick="removeFixedTeam(${i})">刪除</button>
             </div>`;
         });
@@ -478,22 +467,26 @@
     }
 
     function initSystem() {
+        let uniquePlayers = new Set();
+
         if (systemMode === 'fixed') {
             if (fixedTeamsList.length < 2) { alert("至少需要新增 2 支隊伍才能比賽！"); return; }
-            // 將固定隊伍轉化為內部讀取的格式 "A&B"
             players = fixedTeamsList.map(t => t[0] + '&' + t[1]);
             document.querySelector('input[name="mode"][value="2"]').checked = true; 
+            
+            // 獨立提取每個人的名字，為了狀態看板使用
+            players.forEach(team => team.split('&').forEach(p => { if(p) uniquePlayers.add(p); }));
         } else {
             let rawInput = document.getElementById('input-names').value;
             players = rawInput.split(/[\n, \t]+/).map(s => s.trim()).filter(s => s.length > 0);
             if (players.length < 2) { alert("至少需要 2 名玩家！"); return; }
-            
-            // 自動幫後台設定單雙打參數
             document.querySelector(`input[name="mode"][value="${systemMode}"]`).checked = true;
+            
+            players.forEach(p => uniquePlayers.add(p));
         }
         
         consecutiveCounts = {}; consecutiveRestCounts = {}; totalGames = {}; totalWins = {}; matchHistory = [];
-        players.forEach(p => { consecutiveCounts[p] = 0; consecutiveRestCounts[p] = 0; totalGames[p] = 0; totalWins[p] = 0; });
+        uniquePlayers.forEach(p => { consecutiveCounts[p] = 0; consecutiveRestCounts[p] = 0; totalGames[p] = 0; totalWins[p] = 0; });
         historyDoubles.clear(); historySingles.clear(); roundCount = 0;
         historyCourtGroups.clear(); 
         
@@ -521,14 +514,9 @@
         let tB = [b1]; if (b2) tB.push(b2);
         let sMode = (tA.length === 1 && tB.length === 1) ? "1" : "2"; 
         
-        if (systemMode === 'fixed') {
-            let tAStr = tA.join('&'); let tBStr = tB.join('&');
-            totalGames[tAStr] = (totalGames[tAStr]||0) + 1;
-            totalGames[tBStr] = (totalGames[tBStr]||0) + 1;
-        } else {
-            tA.forEach(p => { totalGames[p] = (totalGames[p]||0) + 1; });
-            tB.forEach(p => { totalGames[p] = (totalGames[p]||0) + 1; });
-        }
+        // 個人戰績同步更新
+        tA.forEach(p => { totalGames[p] = (totalGames[p]||0) + 1; });
+        tB.forEach(p => { totalGames[p] = (totalGames[p]||0) + 1; });
         updateStatsTable();
         
         let dataStr = JSON.stringify({ tA, tB, court: c, mode: sMode }); 
@@ -576,9 +564,9 @@
     function fullResetKeepNames() {
         if(!confirm("確定要結束今日比賽並全部重置嗎？\n(所有戰績與紀錄將被清空，但保留名單)")) return;
         consecutiveCounts = {}; consecutiveRestCounts = {}; totalGames = {}; totalWins = {}; matchHistory = [];
-        historyDoubles.clear(); historySingles.clear(); roundCount = 0; historyCourtGroups.clear(); 
+        historyDoubles.clear(); historySingles.clear(); roundCount = 0;
+        historyCourtGroups.clear(); 
         
-        // 退回最初的 Landing Page
         document.getElementById('control-section').style.display = 'none';
         document.getElementById('result-section').style.display = 'none';
         document.getElementById('landing-section').style.display = 'block';
@@ -590,7 +578,14 @@
 
     function shuffle(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; } return array; }
     function getPairKey(p1, p2) { return [p1, p2].sort().join('|'); }
-    function calculateScore(p) { let s = (totalGames[p]||0)*100 + (consecutiveCounts[p]||0)*50; if((consecutiveCounts[p]||0)>=2) s += 5000; if((consecutiveRestCounts[p]||0)>=2) s -= 10000; return s; }
+    
+    function calculateScore(p) { 
+        let checkP = p.includes('&') ? p.split('&')[0] : p;
+        let s = (totalGames[checkP]||0)*100 + (consecutiveCounts[checkP]||0)*50; 
+        if((consecutiveCounts[checkP]||0)>=2) s += 5000; 
+        if((consecutiveRestCounts[checkP]||0)>=2) s -= 10000; 
+        return s; 
+    }
     
     function tryToPair(list, mode, pg) { 
         for(let i=0; i<50; i++){ 
@@ -611,8 +606,19 @@
     }
     
     function updateData(groups, byes, mode) { 
-        groups.flat().forEach(p => { consecutiveCounts[p]=(consecutiveCounts[p]||0)+1; consecutiveRestCounts[p]=0; totalGames[p]=(totalGames[p]||0)+1; }); 
-        byes.forEach(p => { consecutiveCounts[p]=0; consecutiveRestCounts[p]=(consecutiveRestCounts[p]||0)+1; }); 
+        groups.flat().forEach(team => { 
+            team.split('&').forEach(indiv => {
+                consecutiveCounts[indiv]=(consecutiveCounts[indiv]||0)+1; 
+                consecutiveRestCounts[indiv]=0; 
+                totalGames[indiv]=(totalGames[indiv]||0)+1; 
+            });
+        }); 
+        byes.forEach(team => { 
+            team.split('&').forEach(indiv => {
+                consecutiveCounts[indiv]=0; 
+                consecutiveRestCounts[indiv]=(consecutiveRestCounts[indiv]||0)+1; 
+            });
+        }); 
         
         groups.forEach(g => { 
             if(mode==="1") {
@@ -652,8 +658,14 @@
         
         if (!bestResult) {
             let shuffled = shuffle([...players]);
-            let mustPlay = shuffled.filter(p => (consecutiveRestCounts[p]||0)>=2);
-            let others = shuffled.filter(p => (consecutiveRestCounts[p]||0)<2);
+            let mustPlay = shuffled.filter(p => {
+                let checkP = p.includes('&') ? p.split('&')[0] : p;
+                return (consecutiveRestCounts[checkP]||0)>=2;
+            });
+            let others = shuffled.filter(p => {
+                let checkP = p.includes('&') ? p.split('&')[0] : p;
+                return (consecutiveRestCounts[checkP]||0)<2;
+            });
             let forced = [...others, ...mustPlay].slice(numByes);
             let forcedGroups = [];
             for(let i=0; i<forced.length; i+=perGroup) forcedGroups.push(forced.slice(i, i+perGroup));
@@ -688,18 +700,29 @@
             </div>`;
         });
         
-        let byeNames = systemMode === 'fixed' ? byes.map(b => b.replace('&', ' & ')) : byes;
+        let byeNames = systemMode === 'fixed' ? byes.map(b => b.replace('&', ', ')) : byes;
         if (byes.length) html += `<div class="rest-card">💤 休息: ${byeNames.join(', ')}</div>`; else html += `<div class="rest-card" style="background:#d4edda;">✅ 全員上場</div>`;
         document.getElementById('result-container').innerHTML = html;
     }
 
     function updateStatsTable() {
         const tbody = document.getElementById('stats-body'); tbody.innerHTML = '';
-        [...players].sort((a,b) => (totalWins[b]||0)-(totalWins[a]||0) || (totalGames[a]||0)-(totalGames[b]||0)).forEach(p => {
+        
+        let displayPlayers = [];
+        if (systemMode === 'fixed') {
+            let uniquePlayers = new Set();
+            players.forEach(team => {
+                team.split('&').forEach(p => { if(p) uniquePlayers.add(p); });
+            });
+            displayPlayers = Array.from(uniquePlayers);
+        } else {
+            displayPlayers = [...players];
+        }
+
+        displayPlayers.sort((a,b) => (totalWins[b]||0)-(totalWins[a]||0) || (totalGames[a]||0)-(totalGames[b]||0)).forEach(p => {
             let ps = consecutiveCounts[p]||0, rs = consecutiveRestCounts[p]||0;
             let st = ps>=2 ? `<span class="tired-highlight">🔥 連打 ${ps}</span>` : (rs>=1 ? `<span class="cold-highlight">❄️ 連休 ${rs}</span>` : `上場 ${ps}`);
-            let displayName = systemMode === 'fixed' ? p.replace('&', ' & ') : p;
-            tbody.innerHTML += `<tr class="${ps>=2?'tired-row':(rs>=1?'cold-row':'')}"><td>${displayName}</td><td>${st}</td><td>${totalGames[p]||0}</td><td>${totalWins[p]||0}</td></tr>`;
+            tbody.innerHTML += `<tr class="${ps>=2?'tired-row':(rs>=1?'cold-row':'')}"><td>${p}</td><td>${st}</td><td>${totalGames[p]||0}</td><td>${totalWins[p]||0}</td></tr>`;
         });
     }
 
@@ -1036,12 +1059,8 @@
         let winnerSide = (matchState.scoreA > matchState.scoreB) ? 'A' : 'B';
         let winningPlayers = (winnerSide === 'A') ? matchState.teamA : matchState.teamB;
         
-        if (systemMode === 'fixed') {
-            let winTeamStr = winningPlayers.filter(p=>p!=="").join('&');
-            totalWins[winTeamStr] = (totalWins[winTeamStr] || 0) + 1;
-        } else {
-            winningPlayers.forEach(p => { if(p && p !== "") totalWins[p] = (totalWins[p] || 0) + 1; });
-        }
+        // 🆕 無論單打、隨機雙打還是固定隊伍，戰績全都算給個人！
+        winningPlayers.forEach(p => { if(p && p !== "") totalWins[p] = (totalWins[p] || 0) + 1; });
         
         matchHistory.unshift({ 
             winner: winnerSide, scoreA: matchState.scoreA, scoreB: matchState.scoreB, 
