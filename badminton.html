@@ -225,19 +225,19 @@
         <div style="display:flex; justify-content:space-between; margin-bottom:15px; background:#f8f9fa; padding:15px; border-radius:8px;">
             <div style="flex:1; padding-right:10px;">
                 <div style="color:#e74c3c; font-weight:bold; margin-bottom:5px;">🔴 紅隊</div>
-                <input type="text" id="man-a1" placeholder="球員 1" style="width:100%; margin-bottom:5px; padding:8px; box-sizing:border-box; border-radius:4px; border:1px solid #ccc;">
-                <input type="text" id="man-a2" placeholder="球員 2 (單打留空)" style="width:100%; padding:8px; box-sizing:border-box; border-radius:4px; border:1px solid #ccc;">
+                <="text" id="man-a1" placeholder="球員 1" style="width:100%; margin-bottom:5px; padding:8px; box-sizing:border-box; border-radius:4px; border:1px solid #ccc;">
+                <="text" id="man-a2" placeholder="球員 2 (單打留空)" style="width:100%; padding:8px; box-sizing:border-box; border-radius:4px; border:1px solid #ccc;">
             </div>
             <div style="display:flex; align-items:center; font-weight:bold; color:#7f8c8d;">VS</div>
             <div style="flex:1; padding-left:10px;">
                 <div style="color:#3498db; font-weight:bold; margin-bottom:5px;">🔵 藍隊</div>
-                <input type="text" id="man-b1" placeholder="球員 3" style="width:100%; margin-bottom:5px; padding:8px; box-sizing:border-box; border-radius:4px; border:1px solid #ccc;">
-                <input type="text" id="man-b2" placeholder="球員 4 (單打留空)" style="width:100%; padding:8px; box-sizing:border-box; border-radius:4px; border:1px solid #ccc;">
+                <="text" id="man-b1" placeholder="球員 3" style="width:100%; margin-bottom:5px; padding:8px; box-sizing:border-box; border-radius:4px; border:1px solid #ccc;">
+                <="text" id="man-b2" placeholder="球員 4 (單打留空)" style="width:100%; padding:8px; box-sizing:border-box; border-radius:4px; border:1px solid #ccc;">
             </div>
         </div>
         <div style="margin-bottom:15px; text-align:left;">
             <label>分配場地編號：</label>
-            <input type="number" id="man-court" value="1" min="1" style="width:100%; padding:8px; box-sizing:border-box; border-radius:6px; border:1px solid #ccc;">
+            <="number" id="man-court" value="1" min="1" style="width:100%; padding:8px; box-sizing:border-box; border-radius:6px; border:1px solid #ccc;">
         </div>
         <div style="display:flex; gap:10px;">
             <button onclick="confirmManualMatch()" style="background:#27ae60; color:white; flex:1;">確認新增到賽程</button>
@@ -272,12 +272,12 @@
         <div style="display:flex; justify-content:space-around; align-items:center; margin:20px 0;">
             <div style="text-align:center;">
                 <div style="color:#ff6b6b; font-weight:bold; margin-bottom:8px;">🔴 紅隊</div>
-                <input type="number" id="edit-score-a" style="width:70px; font-size:2em; text-align:center; border:2px solid #ff6b6b; border-radius:8px; padding:5px;" min="0">
+                <="number" id="edit-score-a" style="width:70px; font-size:2em; text-align:center; border:2px solid #ff6b6b; border-radius:8px; padding:5px;" min="0">
             </div>
             <div style="font-size:2em; color:#bdc3c7; font-weight:bold;">:</div>
             <div style="text-align:center;">
                 <div style="color:#4ecdc4; font-weight:bold; margin-bottom:8px;">🔵 藍隊</div>
-                <input type="number" id="edit-score-b" style="width:70px; font-size:2em; text-align:center; border:2px solid #4ecdc4; border-radius:8px; padding:5px;" min="0">
+                <="number" id="edit-score-b" style="width:70px; font-size:2em; text-align:center; border:2px solid #4ecdc4; border-radius:8px; padding:5px;" min="0">
             </div>
         </div>
         <div style="display:flex; gap:10px;">
@@ -340,7 +340,7 @@
     </div>
     
     <div class="setting-score">
-        目標: <input type="number" id="target-score" value="21" onchange="updateCourtVisuals()"> | 
+        目標: <input type="number" id="target-score" value="15" onchange="updateCourtVisuals()"> | 
         <span id="game-info">準備開始</span>
     </div>
 
